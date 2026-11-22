@@ -59,7 +59,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
           {att.courses.length > 1 && (
             <div className="grid gap-3 sm:grid-cols-2">
               {att.courses.map((c) => (
-                <div key={c.offering_id} className="flex items-center justify-between rounded-xl border bg-card p-4">
+                <div key={c.offering_id} className="flex items-center justify-between surface rounded-2xl p-4">
                   <div>
                     <div className="font-medium">{c.subject_code}</div>
                     <div className="text-xs text-muted-foreground">
@@ -94,7 +94,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
         </div>
 
         <aside className="lg:sticky lg:top-6 lg:self-start">
-          <div className="rounded-xl border bg-card p-5">
+          <div className="surface rounded-2xl p-5">
             <h2 className="mb-4 font-medium">ID card</h2>
             <IdCardViewer student={card!} />
           </div>

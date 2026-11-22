@@ -9,7 +9,7 @@ import { setupAdmin } from "@/features/auth/actions";
 export function SetupForm() {
   const [state, action, pending] = useActionState(setupAdmin, undefined);
   return (
-    <form action={action} className="space-y-4 rounded-2xl border bg-card p-5 shadow-sm">
+    <form action={action} className="space-y-4 surface rounded-2xl p-5 shadow-sm">
       <div className="space-y-1.5">
         <Label htmlFor="full_name">Full name</Label>
         <Input id="full_name" name="full_name" placeholder="As it should appear on reports" required />

@@ -12,7 +12,7 @@ export function LoginForm() {
 
   return (
     <div className="space-y-4">
-      <form action={action} className="space-y-4 rounded-2xl border bg-card p-5 shadow-sm">
+      <form action={action} className="space-y-4 surface rounded-2xl p-5 shadow-sm">
         <input type="hidden" name="mode" value="teacher" />
         <div className="space-y-1.5">
           <Label htmlFor="email">Teacher email</Label>
@@ -35,7 +35,7 @@ export function LoginForm() {
 
       <Link
         href="/"
-        className="flex items-center justify-between rounded-2xl border bg-card px-5 py-4 text-sm transition-colors hover:bg-muted/50"
+        className="flex items-center justify-between surface rounded-2xl px-5 py-4 text-sm transition-colors hover:bg-muted/50"
       >
         <span>
           <span className="block font-medium">Student?</span>

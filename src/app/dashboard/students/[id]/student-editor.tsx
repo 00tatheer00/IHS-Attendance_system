@@ -98,7 +98,7 @@ export function StudentEditor({ student }: Props) {
 
   return (
     <div className="space-y-6">
-      <section className="rounded-xl border bg-card">
+      <section className="surface rounded-2xl">
         <div className="border-b px-5 py-4">
           <h2 className="font-medium">Profile</h2>
         </div>
@@ -148,7 +148,7 @@ export function StudentEditor({ student }: Props) {
         </form>
       </section>
 
-      <section className="rounded-xl border bg-card">
+      <section className="surface rounded-2xl">
         <div className="border-b px-5 py-4">
           <h2 className="font-medium">Photo, card &amp; portal</h2>
         </div>

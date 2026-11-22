@@ -30,7 +30,7 @@ export function DepartmentStudentList({ students }: { students: S[] }) {
     <div className="space-y-3">
       <SearchBox onChange={setQ} placeholder="Find your name or roll number" />
       {list.length ? (
-        <ul className="divide-y overflow-hidden rounded-3xl border bg-card shadow-sm">
+        <ul className="surface stagger divide-y overflow-hidden rounded-3xl">
           {list.map((s) => (
             <li key={s.id}>
               <Link href={`/s/${encodeURIComponent(s.roll_no)}`} className="pressable flex items-center gap-3 px-4 py-3 hover:bg-muted/50 active:bg-muted">

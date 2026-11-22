@@ -83,7 +83,7 @@ export default async function SessionsPage({ searchParams }: { searchParams: Pro
       {sessions.length === 0 ? (
         <EmptyState icon={<CalendarCheckIcon />} title="No classes yet" description="Classes you start will appear here." />
       ) : (
-        <ul className="divide-y overflow-hidden rounded-2xl border bg-card shadow-sm">
+        <ul className="divide-y overflow-hidden surface rounded-2xl">
           {sessions.map((s) => {
             const counted = s.enrolled - s.excused;
             const rate = s.status === "closed" && counted > 0 ? Math.round((100 * s.present) / counted) : null;

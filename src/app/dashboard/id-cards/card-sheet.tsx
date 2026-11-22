@@ -71,7 +71,7 @@ export function CardSheet({ students, title }: { students: CardStudent[]; title:
 
       <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {visible.map((s) => (
-          <li key={s.id} className={cn("flex items-center gap-3 rounded-xl border bg-card p-3 transition-opacity", !selected.has(s.id) && "opacity-60")}>
+          <li key={s.id} className={cn("flex items-center gap-3 surface rounded-2xl p-3 transition-opacity", !selected.has(s.id) && "opacity-60")}>
             <Checkbox checked={selected.has(s.id)} onCheckedChange={(v) => toggle(s.id, Boolean(v))} aria-label={`Select ${s.full_name}`} />
             <StudentAvatar photoUrl={s.photoUrl} gender={s.gender} name={s.full_name} />
             <div className="min-w-0 flex-1">

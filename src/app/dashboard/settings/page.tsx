@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Settings" };
 
 function Section({ title, description, children }: { title: string; description: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-xl border bg-card">
+    <section className="surface rounded-2xl">
       <div className="border-b px-5 py-4">
         <h2 className="font-medium">{title}</h2>
         <p className="text-sm text-muted-foreground">{description}</p>

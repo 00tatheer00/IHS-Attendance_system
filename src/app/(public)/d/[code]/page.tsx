@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeftIcon } from "lucide-react";
 import { getPublicDepartment, searchStudents } from "@/lib/public";
 import { DepartmentStudentList } from "./department-student-list";
-import { deptGradient } from "@/components/common/department-cards";
+import { deptTheme } from "@/lib/dept-theme";
 
 export async function generateMetadata({ params }: { params: Promise<{ code: string }> }): Promise<Metadata> {
   const dept = await getPublicDepartment((await params).code);
@@ -18,8 +18,9 @@ export default async function PublicDepartmentPage({ params }: { params: Promise
 
   return (
     <div className="space-y-5">
-      <section className={`relative overflow-hidden rounded-3xl bg-linear-to-br ${deptGradient(dept.code)} p-5 text-white shadow-xl shadow-black/10`}>
-        <div className="pointer-events-none absolute -top-12 -right-12 size-44 rounded-full bg-white/15 blur-2xl" />
+      <section className={`relative overflow-hidden rounded-3xl ${deptTheme(dept.code).hero} p-5 text-white shadow-xl shadow-black/15`}>
+        <div className="pointer-events-none absolute -top-16 -right-12 size-52 rounded-full bg-white/15 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-20 -left-10 size-44 rounded-full bg-black/20 blur-3xl" />
         <Link href="/" className="relative inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium backdrop-blur hover:bg-white/25">
           <ArrowLeftIcon className="size-3.5" /> Departments
         </Link>
@@ -29,7 +30,7 @@ export default async function PublicDepartmentPage({ params }: { params: Promise
             <h1 className="text-2xl font-bold tracking-tight">BS {dept.name}</h1>
             <p className="mt-0.5 text-sm text-white/80">Tap your name to see attendance &amp; ID card</p>
           </div>
-          <div className="rounded-2xl bg-white/20 px-3 py-2 text-center backdrop-blur">
+          <div className="rounded-2xl bg-white/15 px-3.5 py-2 text-center ring-1 ring-white/20 backdrop-blur">
             <div className="tabular text-2xl leading-none font-bold">{students.length}</div>
             <div className="text-[10px] text-white/80">students</div>
           </div>

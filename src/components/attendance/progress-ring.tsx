@@ -38,7 +38,8 @@ export function ProgressRing({
           strokeDasharray={c}
           strokeDashoffset={c * (1 - v / 100)}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
-          style={{ transition: "stroke-dashoffset 700ms cubic-bezier(.2,.8,.2,1)" }}
+          className="ring-fill"
+          style={{ ["--ring-c" as string]: `${c}px`, transition: "stroke-dashoffset 700ms cubic-bezier(.22,1,.36,1)" } as React.CSSProperties}
         />
         {/* tick marking the minimum requirement */}
         <line
@@ -52,7 +53,7 @@ export function ProgressRing({
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="tabular text-4xl font-semibold tracking-tight">{value == null ? "—" : `${Math.round(v)}%`}</span>
+        <span className="tabular text-4xl font-bold tracking-tight">{value == null ? "—" : `${Math.round(v)}%`}</span>
         <span className="text-xs text-muted-foreground">{label}</span>
       </div>
     </div>

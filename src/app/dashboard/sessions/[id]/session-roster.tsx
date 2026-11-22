@@ -82,7 +82,7 @@ export function SessionRoster({ sessionId, roster, editable }: { sessionId: stri
         </div>
       </div>
 
-      <ul className="divide-y overflow-hidden rounded-xl border bg-card">
+      <ul className="divide-y overflow-hidden surface rounded-2xl">
         {visible.map((r) => (
           <li key={r.id} className="flex items-center gap-3 px-4 py-2.5">
             <StudentAvatar photoUrl={r.photoUrl} gender={r.gender} name={r.full_name} />

@@ -84,7 +84,7 @@ export default async function ReportsPage({
       ) : view === "summary" ? (
         <>
           {/* daily strip */}
-          <div className="mb-5 overflow-x-auto rounded-xl border bg-card p-4">
+          <div className="mb-5 overflow-x-auto surface rounded-2xl p-4">
             <div className="mb-3 text-sm font-medium">Attendance per class</div>
             <div className="flex min-w-max items-end gap-1.5">
               {report.sessions.map((s) => {
@@ -102,7 +102,7 @@ export default async function ReportsPage({
             </div>
           </div>
 
-          <div className="overflow-hidden rounded-xl border bg-card">
+          <div className="overflow-hidden surface rounded-2xl">
             <div className="overflow-x-auto">
               <table className="w-full min-w-[560px] text-sm">
                 <thead className="bg-muted/60 text-left text-xs text-muted-foreground">
@@ -145,7 +145,7 @@ export default async function ReportsPage({
           </div>
         </>
       ) : (
-        <div className="overflow-hidden rounded-xl border bg-card">
+        <div className="overflow-hidden surface rounded-2xl">
           <div className="max-h-[70vh] overflow-auto">
             <table className="text-xs">
               <thead className="sticky top-0 z-10 bg-muted">

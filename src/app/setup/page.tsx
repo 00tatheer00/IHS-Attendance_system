@@ -29,7 +29,7 @@ export default async function SetupPage() {
         {configured ? (
           <SetupForm />
         ) : (
-          <div className="rounded-2xl border bg-card p-5 text-sm">
+          <div className="surface rounded-2xl p-5 text-sm">
             <p className="font-medium">Supabase is not connected yet.</p>
             <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-muted-foreground">
               <li>Copy <code>.env.example</code> to <code>.env.local</code>.</li>

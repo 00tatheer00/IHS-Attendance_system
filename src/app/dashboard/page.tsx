@@ -67,16 +67,15 @@ export default async function DashboardHome() {
 
   return (
     <>
-      <section className="relative mb-5 overflow-hidden rounded-3xl bg-linear-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-5 text-white shadow-xl shadow-violet-600/20">
-        <div className="pointer-events-none absolute -top-16 -right-10 size-52 rounded-full bg-white/10 blur-2xl" />
-        <div className="pointer-events-none absolute -bottom-20 left-10 size-52 rounded-full bg-amber-300/20 blur-2xl" />
+      <section className="bg-hero relative mb-5 overflow-hidden rounded-[28px] p-5 text-white shadow-2xl shadow-indigo-950/25">
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,rgb(255_255_255/0.04)_1px,transparent_1px),linear-gradient(to_bottom,rgb(255_255_255/0.04)_1px,transparent_1px)] bg-size-[22px_22px] [mask-image:radial-gradient(ellipse_at_top_right,black,transparent_70%)]" />
         <div className="relative">
-          <p className="text-sm text-white/75">{greeting()} 👋</p>
+          <p className="text-sm text-indigo-100/80">{greeting()} 👋</p>
           <h1 className="text-2xl font-bold tracking-tight">{firstName}</h1>
           <div className="mt-4 flex flex-wrap gap-2 text-xs font-medium">
-            <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">{totalStudents} students</span>
-            <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">{offerings.length} courses</span>
-            <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">
+            <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15 backdrop-blur">{totalStudents} students</span>
+            <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15 backdrop-blur">{offerings.length} courses</span>
+            <span className="rounded-full bg-white/10 px-3 py-1 ring-1 ring-white/15 backdrop-blur">
               {held.length ? `${held.length} class${held.length === 1 ? "" : "es"} this week` : "No classes yet this week"}
             </span>
           </div>
@@ -84,7 +83,7 @@ export default async function DashboardHome() {
       </section>
 
       {open.map((s) => (
-        <Link key={s.id} href={`/scan/${s.id}`} className="mb-4 flex items-center gap-3 rounded-xl border border-success/40 bg-success/8 p-4 hover:bg-success/12">
+        <Link key={s.id} href={`/scan/${s.id}`} className="lift mb-4 flex items-center gap-3 rounded-2xl border border-emerald-200 bg-linear-to-r from-emerald-50 to-white p-4">
           <span className="relative flex size-3">
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-success opacity-60" />
             <span className="relative inline-flex size-3 rounded-full bg-success" />
@@ -114,7 +113,7 @@ export default async function DashboardHome() {
       <ShareLink />
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">
-        <section className="rounded-xl border bg-card">
+        <section className="surface rounded-2xl">
           <div className="flex items-center justify-between border-b px-4 py-3">
             <h2 className="font-medium">This week</h2>
             <Link href="/dashboard/sessions" className="text-sm text-brand hover:underline">All classes</Link>
@@ -137,7 +136,7 @@ export default async function DashboardHome() {
           )}
         </section>
 
-        <section className="rounded-xl border bg-card">
+        <section className="surface rounded-2xl">
           <div className="flex items-center justify-between border-b px-4 py-3">
             <h2 className="flex items-center gap-2 font-medium">
               <AlertTriangleIcon className="size-4 text-warning-foreground" /> Below {MIN_ATTENDANCE_PCT}%
@@ -171,7 +170,7 @@ export default async function DashboardHome() {
 
 function Step({ n, done, title, text, href, icon }: { n: number; done: boolean; title: string; text: string; href: string; icon: React.ReactNode }) {
   return (
-    <li className="flex items-center gap-4 rounded-xl border bg-card p-4">
+    <li className="flex items-center gap-4 surface rounded-2xl p-4">
       <span className={`flex size-9 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${done ? "bg-success text-success-foreground" : "bg-brand-soft text-brand"}`}>
         {done ? "✓" : n}
       </span>

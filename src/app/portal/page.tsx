@@ -33,7 +33,7 @@ export default async function PortalHome() {
         </p>
       </div>
 
-      <section className="flex flex-col items-center rounded-3xl border bg-card px-5 pt-6 pb-5">
+      <section className="flex flex-col items-center surface rounded-3xl px-5 pt-6 pb-5">
         <ProgressRing value={att.overall} min={MIN_ATTENDANCE_PCT} />
         <div
           className={cn(
@@ -72,7 +72,7 @@ export default async function PortalHome() {
         <section className="space-y-2">
           <h2 className="px-1 text-sm font-medium">By subject</h2>
           {att.courses.map((c) => (
-            <div key={c.offering_id} className="flex items-center justify-between rounded-2xl border bg-card p-4">
+            <div key={c.offering_id} className="flex items-center justify-between surface rounded-2xl p-4">
               <div>
                 <div className="font-medium">{c.subject_name}</div>
                 <div className="text-xs text-muted-foreground">

@@ -46,7 +46,7 @@ export function SearchBox({
 
   return (
     <div className="relative">
-      <SearchIcon className="absolute top-1/2 left-4 size-5 -translate-y-1/2 text-violet-600" />
+      <SearchIcon className="absolute top-1/2 left-4 size-5 -translate-y-1/2 text-indigo-500" />
       <input
         type="search"
         value={value}
@@ -56,7 +56,7 @@ export function SearchBox({
         autoCapitalize="words"
         enterKeyHint="search"
         autoFocus={autoFocus}
-        className="h-14 w-full rounded-2xl border bg-card pr-12 pl-12 text-base shadow-md shadow-violet-500/5 outline-none transition focus:border-ring focus:ring-4 focus:ring-ring/15 [&::-webkit-search-cancel-button]:hidden"
+        className="surface h-14 w-full rounded-2xl pr-12 pl-12 text-base outline-none transition-all duration-200 focus:border-indigo-300 focus:ring-4 focus:ring-indigo-500/10 [&::-webkit-search-cancel-button]:hidden"
       />
       <div className="absolute top-1/2 right-3 -translate-y-1/2">
         {pending ? (

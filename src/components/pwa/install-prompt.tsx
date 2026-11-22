@@ -39,7 +39,7 @@ export function InstallPrompt() {
   };
 
   return (
-    <div className="relative flex items-center gap-3 rounded-2xl border bg-card p-4">
+    <div className="relative flex items-center gap-3 surface rounded-2xl p-4">
       <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-brand-soft text-brand">
         <DownloadIcon className="size-5" />
       </div>

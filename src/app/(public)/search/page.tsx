@@ -18,7 +18,7 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
         <StudentResults results={results} query={q} />
       ) : (
         <div className="flex flex-col items-center px-6 py-14 text-center text-muted-foreground">
-          <div className="mb-3 flex size-14 items-center justify-center rounded-2xl bg-linear-to-br from-indigo-500 to-fuchsia-500 text-white shadow-lg shadow-fuchsia-500/20">
+          <div className="bg-hero mb-3 flex size-14 items-center justify-center rounded-2xl text-white shadow-lg shadow-indigo-900/25">
             <SearchIcon className="size-6" />
           </div>
           <p className="font-medium text-foreground">Find any student</p>

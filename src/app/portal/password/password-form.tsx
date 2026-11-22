@@ -20,7 +20,7 @@ export function PasswordForm() {
   }, [state, router]);
 
   return (
-    <form action={action} className="space-y-4 rounded-2xl border bg-card p-5">
+    <form action={action} className="space-y-4 surface rounded-2xl p-5">
       <div className="space-y-1.5">
         <Label htmlFor="password">New password</Label>
         <Input id="password" name="password" type="password" autoComplete="new-password" minLength={8} className="h-11" required />

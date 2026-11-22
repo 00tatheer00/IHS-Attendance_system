@@ -14,7 +14,7 @@ import { MonthCalendar } from "@/components/attendance/month-calendar";
 import { percentTone } from "@/components/attendance/status-badge";
 import { IdCardViewer } from "@/components/id-card/id-card-viewer";
 import { AutoRefresh } from "./auto-refresh";
-import { deptGradient } from "@/components/common/department-cards";
+import { deptTheme } from "@/lib/dept-theme";
 import { cn } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ roll: string }> }): Promise<Metadata> {
@@ -39,8 +39,8 @@ export default async function PublicStudentPage({ params }: { params: Promise<{ 
   return (
     <div className="mx-auto max-w-lg space-y-5">
       <AutoRefresh />
-      <section className={`relative overflow-hidden rounded-3xl bg-linear-to-br ${deptGradient(student.class.department.code)} px-5 pt-5 pb-16 text-white shadow-xl shadow-black/10`}>
-        <div className="pointer-events-none absolute -top-14 -right-10 size-48 rounded-full bg-white/15 blur-2xl" />
+      <section className={`relative overflow-hidden rounded-3xl ${deptTheme(student.class.department.code).hero} px-5 pt-5 pb-16 text-white shadow-xl shadow-black/15`}>
+        <div className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-full bg-white/15 blur-3xl" />
         <Link href={`/d/${student.class.department.code}`} className="relative inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium backdrop-blur hover:bg-white/25">
           <ArrowLeftIcon className="size-3.5" /> BS {student.class.department.name}
         </Link>
@@ -55,7 +55,7 @@ export default async function PublicStudentPage({ params }: { params: Promise<{ 
         </div>
       </section>
 
-      <section className="relative -mt-14 mx-2 flex flex-col items-center rounded-3xl border bg-card px-5 pt-6 pb-5 shadow-xl shadow-violet-900/5">
+      <section className="surface relative mx-2 -mt-14 flex flex-col items-center rounded-3xl px-5 pt-6 pb-5">
         <ProgressRing value={att.overall} min={MIN_ATTENDANCE_PCT} />
         <div
           className={cn(
@@ -89,7 +89,7 @@ export default async function PublicStudentPage({ params }: { params: Promise<{ 
         <section className="space-y-2">
           <h2 className="px-1 text-sm font-medium">By subject</h2>
           {att.courses.map((c) => (
-            <div key={c.offering_id} className="flex items-center justify-between rounded-2xl border bg-card p-4">
+            <div key={c.offering_id} className="flex items-center justify-between surface rounded-2xl p-4">
               <div>
                 <div className="font-medium">{c.subject_name}</div>
                 <div className="text-xs text-muted-foreground">{c.stats.present} of {c.stats.present + c.stats.absent} attended</div>
@@ -101,7 +101,7 @@ export default async function PublicStudentPage({ params }: { params: Promise<{ 
       )}
 
       {PUBLIC_PORTAL.cardDownload && (
-        <section className="rounded-3xl border bg-card p-5">
+        <section className="surface rounded-3xl p-5">
           <h2 className="mb-1 font-medium">ID card</h2>
           <p className="mb-4 text-sm text-muted-foreground">Print it, or keep it on your phone. Show the QR code on the back to the teacher’s camera in class.</p>
           <IdCardViewer student={card} />

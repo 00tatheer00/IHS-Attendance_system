@@ -130,7 +130,7 @@ export function ImportWizard({ batches, departments, existing }: Props) {
     return (
       <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
         <DropZone disabled={step === "reading" || !batchId} onFile={handleFile} reading={step === "reading"} progress={progress} fileName={fileName} />
-        <div className="space-y-5 rounded-xl border bg-card p-5">
+        <div className="space-y-5 surface rounded-2xl p-5">
           <div className="space-y-1.5">
             <Label htmlFor="batch">Batch</Label>
             <NativeSelect id="batch" value={batchId} onChange={(e) => setBatchId(e.target.value)} disabled={step === "reading"}>
@@ -171,7 +171,7 @@ export function ImportWizard({ batches, departments, existing }: Props) {
 
   if (step === "done" && result) {
     return (
-      <div className="mx-auto max-w-lg rounded-2xl border bg-card p-8 text-center">
+      <div className="mx-auto max-w-lg surface rounded-2xl p-8 text-center">
         <CheckCircle2Icon className="mx-auto size-12 text-success" />
         <h2 className="mt-3 text-lg font-semibold">Import complete</h2>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -238,7 +238,7 @@ function DropZone({
   if (reading) {
     const pct = progress?.pages ? Math.round((progress.done / progress.pages) * 100) : 0;
     return (
-      <div className="flex min-h-72 flex-col items-center justify-center rounded-xl border bg-card p-8 text-center">
+      <div className="flex min-h-72 flex-col items-center justify-center surface rounded-2xl p-8 text-center">
         {progress?.ocr ? <ScanTextIcon className="size-10 text-brand" /> : <Loader2Icon className="size-10 animate-spin text-brand" />}
         <p className="mt-4 font-medium">{progress?.ocr ? "Reading scanned pages…" : "Reading file…"}</p>
         <p className="mt-1 max-w-sm text-sm text-muted-foreground">
@@ -419,7 +419,7 @@ function Review({
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border bg-card">
+      <div className="overflow-hidden surface rounded-2xl">
         <div className="max-h-[60vh] overflow-auto">
           <table className="w-full min-w-[760px] text-sm">
             <thead className="sticky top-0 z-10 bg-muted/95 text-left text-xs text-muted-foreground backdrop-blur">
@@ -446,7 +446,7 @@ function Review({
         </div>
       </div>
 
-      <div className="sticky bottom-20 z-20 flex flex-col gap-3 rounded-xl border bg-card/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between lg:bottom-4">
+      <div className="sticky bottom-20 z-20 flex flex-col gap-3 surface rounded-2xl/95 p-3 shadow-lg backdrop-blur sm:flex-row sm:items-center sm:justify-between lg:bottom-4">
         <p className="px-1 text-sm text-muted-foreground">
           {withIssues.length ? (
             <span className="text-destructive">{withIssues.length} row(s) must be fixed or unticked.</span>

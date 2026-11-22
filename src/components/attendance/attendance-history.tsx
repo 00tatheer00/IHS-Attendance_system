@@ -39,7 +39,7 @@ export function AttendanceHistory({
                 {present}/{list!.length} present
               </span>
             </div>
-            <ul className="divide-y overflow-hidden rounded-xl border bg-card">
+            <ul className="divide-y overflow-hidden surface rounded-2xl">
               {list!.map((i) => (
                 <li key={i.id} className="flex items-center gap-3 px-4 py-3">
                   <div

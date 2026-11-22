@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ChevronRightIcon, SearchXIcon } from "lucide-react";
 import { StudentAvatar } from "@/components/students/student-avatar";
-import { deptGradient } from "@/components/common/department-cards";
+import { deptTheme } from "@/lib/dept-theme";
 import type { PublicStudent } from "@/lib/public";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +24,7 @@ export function StudentResults({ results, query }: { results: PublicStudent[]; q
         {results.length} student{results.length === 1 ? "" : "s"}
         {results.length >= 60 ? " — type more of the name to narrow down" : ""}
       </p>
-      <ul className="divide-y overflow-hidden rounded-3xl border bg-card shadow-sm">
+      <ul className="surface stagger divide-y overflow-hidden rounded-3xl">
         {results.map((s) => (
           <li key={s.id}>
             <Link href={`/s/${encodeURIComponent(s.roll_no)}`} className="pressable flex items-center gap-3 px-4 py-3 hover:bg-muted/50 active:bg-muted">
@@ -32,7 +32,7 @@ export function StudentResults({ results, query }: { results: PublicStudent[]; q
               <div className="min-w-0 flex-1">
                 <div className="truncate font-medium">{s.full_name}</div>
                 <div className="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground">
-                  <span className={cn("rounded-md bg-linear-to-r px-1.5 py-px font-mono text-[10px] font-bold text-white", deptGradient(s.class.department.code))}>
+                  <span className={cn("rounded-md px-1.5 py-px font-mono text-[10px] font-bold", deptTheme(s.class.department.code).soft)}>
                     {s.class.department.code}
                   </span>
                   <span className="font-mono">{s.roll_no}</span>

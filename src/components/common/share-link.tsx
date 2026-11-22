@@ -10,7 +10,7 @@ export function ShareLink() {
   const [copied, setCopied] = useState(false);
   if (!url) return null;
   return (
-    <div className="flex flex-col gap-3 rounded-xl border bg-card p-4 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-3 surface rounded-2xl p-4 sm:flex-row sm:items-center">
       <div className="min-w-0 flex-1">
         <div className="text-sm font-medium">Student portal link</div>
         <div className="text-sm text-muted-foreground">Share in your class WhatsApp group. Students search their name — no login.</div>

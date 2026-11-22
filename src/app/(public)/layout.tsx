@@ -12,14 +12,14 @@ import { PublicTabs } from "./public-tabs";
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL) redirect("/setup");
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="sticky top-0 z-30 bg-linear-to-r from-indigo-700 via-violet-700 to-fuchsia-700 pt-[env(safe-area-inset-top)] text-white shadow-lg shadow-indigo-900/10">
+    <div className="min-h-dvh">
+      <header className="glass sticky top-0 z-30 border-b border-border/60 pt-[env(safe-area-inset-top)]">
         <div className="mx-auto flex h-14 max-w-3xl items-center justify-between gap-3 px-4">
           <Link href="/" className="flex min-w-0 items-center gap-2.5">
-            <BrandMark size={34} className="rounded-xl ring-2 ring-white/30" />
+            <BrandMark size={34} className="rounded-xl shadow-sm ring-1 ring-border" />
             <div className="min-w-0 leading-tight">
-              <div className="truncate text-[15px] font-semibold">{INSTITUTE.shortName} Attendance</div>
-              <div className="truncate text-[11px] text-white/70">{INSTITUTE.name}</div>
+              <div className="text-gradient-brand truncate text-[15px] font-bold">{INSTITUTE.shortName} Attendance</div>
+              <div className="truncate text-[11px] text-muted-foreground">{INSTITUTE.name}</div>
             </div>
           </Link>
           <PublicTabs variant="top" />

@@ -19,7 +19,7 @@ export function MonthCalendar({ month, days }: { month: string; days: Map<string
   const title = new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(first);
 
   return (
-    <div className="rounded-2xl border bg-card p-4">
+    <div className="surface rounded-2xl p-4">
       <div className="mb-3 text-sm font-medium">{title}</div>
       <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-muted-foreground">
         {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (

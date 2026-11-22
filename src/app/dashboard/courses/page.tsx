@@ -48,7 +48,7 @@ export default async function CoursesPage() {
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {offerings.map((o) => (
-            <div key={o.id} className="flex flex-col rounded-xl border bg-card p-4">
+            <div key={o.id} className="flex flex-col surface rounded-2xl p-4">
               <div className="flex items-start justify-between gap-2">
                 <span className="rounded-md bg-brand-soft px-2 py-0.5 font-mono text-xs font-semibold text-brand">{o.subject.code}</span>
                 <span className="text-xs text-muted-foreground">{o.term_label}</span>

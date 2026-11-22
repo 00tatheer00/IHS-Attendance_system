@@ -39,7 +39,7 @@ export function StudentTable({ students }: { students: Row[] }) {
         <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search by name, roll number or father name" className="h-10 pl-9" />
       </div>
 
-      <div className="overflow-hidden rounded-2xl border bg-card shadow-sm">
+      <div className="overflow-hidden surface rounded-2xl">
         <ul className="divide-y">
           {list.slice(0, limit).map((s) => (
             <li key={s.id}>
@@ -72,7 +72,7 @@ export function StudentTable({ students }: { students: Row[] }) {
         {!list.length && <p className="p-10 text-center text-sm text-muted-foreground">No students match “{q}”.</p>}
       </div>
       {list.length > limit && (
-        <button onClick={() => setLimit((l) => l + 300)} className="w-full rounded-2xl border bg-card shadow-sm py-2.5 text-sm font-medium text-brand hover:bg-muted/50">
+        <button onClick={() => setLimit((l) => l + 300)} className="w-full surface rounded-2xl py-2.5 text-sm font-medium text-brand hover:bg-muted/50">
           Show more ({list.length - limit} remaining)
         </button>
       )}

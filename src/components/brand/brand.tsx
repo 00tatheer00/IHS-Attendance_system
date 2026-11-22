@@ -20,7 +20,7 @@ export function Brand({ subtitle = "Attendance", className }: { subtitle?: strin
     <div className={cn("flex items-center gap-2.5", className)}>
       <BrandMark />
       <div className="leading-tight">
-        <div className="text-sm font-semibold">{INSTITUTE.shortName} {subtitle}</div>
+        <div className="text-gradient-brand text-sm font-bold">{INSTITUTE.shortName} {subtitle}</div>
         <div className="text-[11px] text-muted-foreground">{INSTITUTE.affiliation}</div>
       </div>
     </div>

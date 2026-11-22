@@ -22,7 +22,7 @@ export function StudentAvatar({
     <img
       src={photoUrl || avatarFor(gender)}
       alt={name}
-      className={cn("size-9 shrink-0 rounded-full bg-brand-soft object-cover", className)}
+      className={cn("size-9 shrink-0 rounded-full bg-indigo-50 object-cover ring-1 ring-black/5", className)}
       loading="lazy"
     />
   );

@@ -39,7 +39,7 @@ export function ReportFilters({
   };
 
   return (
-    <div className="flex flex-col gap-3 rounded-xl border bg-card p-3 lg:flex-row lg:items-center">
+    <div className="flex flex-col gap-3 surface rounded-2xl p-3 lg:flex-row lg:items-center">
       <NativeSelect value={course} onChange={(e) => set({ course: e.target.value })} className="lg:w-64" aria-label="Course">
         {courses.map((c) => (
           <option key={c.id} value={c.id}>
