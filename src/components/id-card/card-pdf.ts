@@ -22,6 +22,7 @@ export interface CardStudent {
   qr_token: string;
   photoUrl?: string | null;
   department: string; // "Cardiology"
+  section?: string | null; // "A"
   batch: string; // "Batch 3"
   session: string | null; // "2026–2030"
 }
@@ -161,7 +162,7 @@ export function drawFront(d: jsPDF, s: CardStudent, a: CardAssets, ox = 0, oy = 
   // Details
   const rows: [string, string][] = [
     ["PROGRAM", `BS ${s.department}`],
-    ["BATCH", s.session ? `${s.batch}  ·  ${s.session}` : s.batch],
+    ["BATCH", [s.batch, s.section ? `Sec ${s.section}` : null, s.session].filter(Boolean).join("  ·  ")],
   ];
   if (s.father_name) rows.push(["FATHER NAME", s.father_name]);
   let y = nameY + 11.6;

@@ -15,13 +15,17 @@ interface Props {
   subjects: { id: string; code: string; name: string }[];
   classes: { id: string; label: string; batch: string; size: number }[];
   existing: { subject_id: string; class_id: string; term_label: string }[];
+  /** Only for admins: choose which teacher teaches the new courses */
+  teachers?: { id: string; full_name: string }[];
+  myTeacherId?: string;
 }
 
-export function NewCourses({ subjects, classes, existing }: Props) {
+export function NewCourses({ subjects, classes, existing, teachers, myTeacherId }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [subjectId, setSubjectId] = useState(subjects[0]?.id ?? "");
   const [term, setTerm] = useState("Semester 1");
+  const [teacherId, setTeacherId] = useState(myTeacherId ?? teachers?.[0]?.id ?? "");
   const [picked, setPicked] = useState<Set<string>>(new Set());
   const [pending, start] = useTransition();
 
@@ -42,7 +46,12 @@ export function NewCourses({ subjects, classes, existing }: Props) {
 
   function submit() {
     start(async () => {
-      const res = await createOfferings({ subject_id: subjectId, term_label: term, class_ids: [...picked].filter((id) => !taken.has(id)) });
+      const res = await createOfferings({
+        subject_id: subjectId,
+        term_label: term,
+        class_ids: [...picked].filter((id) => !taken.has(id)),
+        teacher_id: teachers?.length ? teacherId : undefined,
+      });
       if (res.error) return void toast.error(res.error);
       toast.success(`${res.created} course${res.created === 1 ? "" : "s"} created. Students were enrolled automatically.`);
       setOpen(false);
@@ -77,6 +86,18 @@ export function NewCourses({ subjects, classes, existing }: Props) {
             <Input id="term" value={term} onChange={(e) => setTerm(e.target.value)} />
           </div>
         </div>
+        {teachers && teachers.length > 1 && (
+          <div className="space-y-1.5">
+            <Label htmlFor="teacher">Teacher</Label>
+            <NativeSelect id="teacher" value={teacherId} onChange={(e) => setTeacherId(e.target.value)}>
+              {teachers.map((t) => (
+                <option key={t.id} value={t.id}>
+                  {t.full_name}
+                </option>
+              ))}
+            </NativeSelect>
+          </div>
+        )}
         <div className="max-h-72 space-y-4 overflow-auto rounded-lg border p-3">
           {Object.entries(byBatch).map(([batch, list]) => (
             <div key={batch}>

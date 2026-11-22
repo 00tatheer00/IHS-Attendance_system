@@ -12,6 +12,8 @@ export interface DepartmentCardItem {
   count: number;
   locked?: boolean;
   lockedNote?: string;
+  /** Small badge on the code tile, e.g. the section letter */
+  badge?: string;
 }
 
 /** Grid of department cards; each card links to that department's students only. Locked ones can't be opened. */
@@ -51,8 +53,13 @@ export function DepartmentCards({ items, className }: { items: DepartmentCardIte
         return (
           <Link key={d.key} href={d.href} className={cn("surface lift pressable group relative flex flex-col overflow-hidden rounded-3xl p-4", t.ring)}>
             <div className="flex items-start justify-between">
-              <div className={cn("flex size-12 items-center justify-center rounded-2xl font-mono text-[13px] font-bold tracking-wide text-white shadow-md shadow-black/10", t.solid)}>
+              <div className={cn("relative flex size-12 items-center justify-center rounded-2xl font-mono text-[13px] font-bold tracking-wide text-white shadow-md shadow-black/10", t.solid)}>
                 {d.code}
+                {d.badge && (
+                  <span className="absolute -right-1.5 -bottom-1.5 flex size-6 items-center justify-center rounded-full bg-white font-sans text-[11px] font-bold text-foreground shadow ring-1 ring-black/5">
+                    {d.badge}
+                  </span>
+                )}
               </div>
               <span className="flex size-7 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all duration-300 group-hover:bg-foreground group-hover:text-background">
                 <ArrowUpRightIcon className="size-3.5" />

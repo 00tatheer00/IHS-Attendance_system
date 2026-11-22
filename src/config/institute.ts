@@ -51,3 +51,14 @@ export const PUBLIC_PORTAL = {
   enabled: true,
   cardDownload: true,
 } as const;
+
+/**
+ * Sections: roll numbers 1–50 are Section A, 51 and above Section B.
+ * (Matches public.section_for_roll() in the database.)
+ */
+export const SECTION_SPLIT_AT = 50;
+
+export function sectionForRoll(rollNo: string): "A" | "B" {
+  const n = Number(rollNo.match(/(\d+)$/)?.[1] ?? 0);
+  return n <= SECTION_SPLIT_AT ? "A" : "B";
+}

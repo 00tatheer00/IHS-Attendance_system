@@ -21,9 +21,10 @@ export async function getClasses(supabase: SupabaseClient) {
   const rows = (data ?? []) as unknown as ClassRow[];
   return rows.sort(
     (a, b) =>
-      a.batch.name.localeCompare(b.batch.name) ||
-      a.department.code.localeCompare(b.department.code) ||
-      (a.section ?? "").localeCompare(b.section ?? ""),
+      Number(a.department.is_locked) - Number(b.department.is_locked) ||
+      a.department.name.localeCompare(b.department.name) ||
+      (a.section ?? "").localeCompare(b.section ?? "") ||
+      a.batch.name.localeCompare(b.batch.name),
   );
 }
 
@@ -41,8 +42,9 @@ export async function getOfferings(supabase: SupabaseClient, opts: { activeOnly?
   return rows.sort(
     (a, b) =>
       a.subject.code.localeCompare(b.subject.code) ||
-      a.class.batch.name.localeCompare(b.class.batch.name) ||
-      a.class.department.code.localeCompare(b.class.department.code),
+      a.class.department.name.localeCompare(b.class.department.name) ||
+      (a.class.section ?? "").localeCompare(b.class.section ?? "") ||
+      a.class.batch.name.localeCompare(b.class.batch.name),
   );
 }
 

@@ -38,7 +38,7 @@ export default async function PublicDepartmentPage({ params }: { params: Promise
         </div>
       </section>
       <DepartmentStudentList
-        students={students.map((s) => ({ id: s.id, roll_no: s.roll_no, full_name: s.full_name, gender: s.gender, batch: s.class.batch.name }))}
+        students={students.map((s) => ({ id: s.id, roll_no: s.roll_no, full_name: s.full_name, gender: s.gender, batch: s.class.batch.name, section: s.class.section }))}
       />
     </div>
   );

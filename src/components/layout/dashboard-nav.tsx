@@ -15,6 +15,7 @@ import {
   SettingsIcon,
   UploadIcon,
   UsersIcon,
+  GraduationCapIcon,
 } from "lucide-react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Brand, BrandMark } from "@/components/brand/brand";
@@ -30,6 +31,7 @@ const NAV = [
   { href: "/dashboard/id-cards", label: "ID Cards", icon: ContactRoundIcon, color: "text-fuchsia-500" },
   { href: "/dashboard/import", label: "Import", icon: UploadIcon, color: "text-rose-500" },
   { href: "/dashboard/courses", label: "Courses", icon: BookOpenIcon, color: "text-violet-500" },
+  { href: "/dashboard/teachers", label: "Teachers", icon: GraduationCapIcon, color: "text-teal-500", adminOnly: true },
   { href: "/dashboard/settings", label: "Settings", icon: SettingsIcon, color: "text-slate-500" },
 ] as const;
 
@@ -38,11 +40,11 @@ function useIsActive() {
   return (href: string, exact?: boolean) => (exact ? pathname === href : pathname === href || pathname.startsWith(href + "/"));
 }
 
-function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
+function NavLinks({ onNavigate, isAdmin }: { onNavigate?: () => void; isAdmin: boolean }) {
   const isActive = useIsActive();
   return (
     <nav className="flex flex-col gap-1">
-      {NAV.map(({ href, label, icon: Icon, color, ...rest }) => {
+      {NAV.filter((n) => isAdmin || !("adminOnly" in n)).map(({ href, label, icon: Icon, color, ...rest }) => {
         const active = isActive(href, "exact" in rest);
         return (
           <Link
@@ -73,7 +75,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-function UserBlock({ name }: { name: string }) {
+function UserBlock({ name, isAdmin }: { name: string; isAdmin: boolean }) {
   return (
     <div className="surface flex items-center gap-3 rounded-2xl p-2.5">
       <div className="bg-hero flex size-9 shrink-0 items-center justify-center rounded-xl text-sm font-bold text-white">
@@ -81,7 +83,7 @@ function UserBlock({ name }: { name: string }) {
       </div>
       <div className="min-w-0 flex-1">
         <div className="truncate text-sm font-medium">{name}</div>
-        <div className="text-xs text-muted-foreground">Teacher · Admin</div>
+        <div className="text-xs text-muted-foreground">{isAdmin ? "Teacher · Admin" : "Teacher"}</div>
       </div>
       <form action={signOut}>
         <button
@@ -97,14 +99,14 @@ function UserBlock({ name }: { name: string }) {
   );
 }
 
-export function DashboardSidebar({ name }: { name: string }) {
+export function DashboardSidebar({ name, isAdmin }: { name: string; isAdmin: boolean }) {
   return (
     <aside className="glass sticky top-0 hidden h-dvh w-64 shrink-0 flex-col gap-6 border-r border-border/60 px-3 py-4 lg:flex">
       <Brand className="px-2" />
       <div className="flex-1 overflow-y-auto">
-        <NavLinks />
+        <NavLinks isAdmin={isAdmin} />
       </div>
-      <UserBlock name={name} />
+      <UserBlock name={name} isAdmin={isAdmin} />
     </aside>
   );
 }
@@ -115,7 +117,7 @@ const MOBILE_TABS = [
   { href: "/dashboard/reports", label: "Reports", icon: BarChart3Icon },
 ] as const;
 
-export function DashboardMobileNav({ name }: { name: string }) {
+export function DashboardMobileNav({ name, isAdmin }: { name: string; isAdmin: boolean }) {
   const isActive = useIsActive();
   const [menuOpen, setMenuOpen] = useState(false);
   const tab = (t: (typeof MOBILE_TABS)[number]) => {
@@ -169,10 +171,10 @@ export function DashboardMobileNav({ name }: { name: string }) {
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
               <div className="overflow-y-auto">
-                <NavLinks onNavigate={() => setMenuOpen(false)} />
+                <NavLinks isAdmin={isAdmin} onNavigate={() => setMenuOpen(false)} />
               </div>
               <div className="mt-3">
-                <UserBlock name={name} />
+                <UserBlock name={name} isAdmin={isAdmin} />
               </div>
             </SheetContent>
           </Sheet>

@@ -36,6 +36,7 @@ export function StudentResults({ results, query }: { results: PublicStudent[]; q
                     {s.class.department.code}
                   </span>
                   <span className="font-mono">{s.roll_no}</span>
+                  {s.class.section && <span>· Sec {s.class.section}</span>}
                 </div>
               </div>
               <ChevronRightIcon className="size-4 text-muted-foreground/60" />

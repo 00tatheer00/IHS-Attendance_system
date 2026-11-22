@@ -27,6 +27,7 @@ export async function toCardStudents(supabase: SupabaseClient, students: Student
     qr_token: s.qr_token,
     photoUrl: s.photo_path ? (photos.get(s.photo_path) ?? null) : null,
     department: s.class.department.name,
+    section: s.class.section,
     batch: s.class.batch.name,
     session: s.class.batch.session_label,
   }));

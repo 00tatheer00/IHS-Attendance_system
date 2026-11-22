@@ -5,6 +5,8 @@ import { z } from "zod";
 import { assertStaff } from "@/lib/auth";
 import type { RawRow } from "./normalize";
 import { readSpreadsheet } from "./spreadsheet";
+import { ensureClasses, mirrorCourses } from "@/lib/class-placement";
+import { sectionForRoll } from "@/config/institute";
 
 export async function parseSpreadsheet(formData: FormData): Promise<{ rows?: RawRow[]; error?: string }> {
   await assertStaff();
@@ -54,13 +56,13 @@ export async function commitImport(input: z.infer<typeof commitSchema>): Promise
   const locked = depts!.filter((d) => d.is_locked && codes.includes(d.code)).map((d) => d.code);
   if (locked.length) return { created: 0, updated: 0, error: `Locked department(s): ${locked.join(", ")}. Unlock in Settings first.` };
 
-  const { error: cErr } = await supabase.from("classes").upsert(
-    codes.map((c) => ({ department_id: deptId.get(c), batch_id: batchId, section: null })),
-    { onConflict: "department_id,batch_id,section", ignoreDuplicates: true },
+  // Place each student in their department's section class (roll 1–50 → A, 51+ → B)
+  const placement = await ensureClasses(
+    supabase,
+    batchId,
+    rows.map((r) => ({ departmentId: deptId.get(r.department_code)!, section: sectionForRoll(r.roll_no) })),
   );
-  if (cErr) return { created: 0, updated: 0, error: cErr.message };
-  const { data: classes } = await supabase.from("classes").select("id, department_id").eq("batch_id", batchId).is("section", null);
-  const classByDept = new Map(classes!.map((c) => [c.department_id as string, c.id as string]));
+  if (placement.error) return { created: 0, updated: 0, error: placement.error };
 
   // Merge with existing rows so blanks in the file never erase saved data
   const ex = new Map<string, { gender: string | null; cnic: string | null; phone: string | null; remarks: string | null }>();
@@ -79,7 +81,7 @@ export async function commitImport(input: z.infer<typeof commitSchema>): Promise
       roll_no: r.roll_no,
       full_name: r.full_name,
       father_name: r.father_name || null,
-      class_id: classByDept.get(deptId.get(r.department_code)!)!,
+      class_id: placement.classIdOf(deptId.get(r.department_code)!, sectionForRoll(r.roll_no))!,
       gender: r.gender ?? prev?.gender ?? null,
       cnic: r.cnic || prev?.cnic || null,
       phone: r.phone || prev?.phone || null,
@@ -91,6 +93,9 @@ export async function commitImport(input: z.infer<typeof commitSchema>): Promise
     const { error } = await supabase.from("students").upsert(payload.slice(i, i + 500), { onConflict: "roll_no" });
     if (error) return { created: 0, updated: 0, error: error.message };
   }
+
+  // A brand-new section gets the same courses as its department's other section
+  await mirrorCourses(supabase, batchId, codes.map((c) => deptId.get(c)!));
 
   revalidatePath("/dashboard", "layout");
   invalidatePublic();

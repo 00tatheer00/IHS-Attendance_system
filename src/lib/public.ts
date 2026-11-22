@@ -90,6 +90,7 @@ async function getPublicStudentRaw(roll: string) {
     qr_token: s.qr_token,
     photoUrl,
     department: s.class.department.name,
+    section: s.class.section,
     batch: s.class.batch.name,
     session: s.class.batch.session_label,
   };

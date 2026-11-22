@@ -7,11 +7,12 @@ import { PageHeader } from "@/components/common/page-header";
 import { EmptyState } from "@/components/common/empty-state";
 import { LinkButton } from "@/components/common/link-button";
 import { NewCourses } from "./new-courses";
+import { CourseTeacherSelect } from "./course-teacher-select";
 
 export const metadata: Metadata = { title: "Courses" };
 
 export default async function CoursesPage() {
-  const { supabase } = await requireStaff();
+  const { supabase, profile, userId } = await requireStaff();
   const [offerings, classes, { data: subjects }, summaries, classSizes] = await Promise.all([
     getOfferings(supabase),
     getClasses(supabase),
@@ -19,6 +20,12 @@ export default async function CoursesPage() {
     getOfferingSummaries(supabase),
     getClassSizes(supabase),
   ]);
+  const isAdmin = profile.role === "admin";
+  const { data: teachers } = isAdmin
+    ? await supabase.from("teachers").select("id, full_name, user_id").not("user_id", "is", null).order("full_name")
+    : { data: null };
+  const teacherList = (teachers ?? []).map((t) => ({ id: t.id as string, full_name: t.full_name as string }));
+  const myTeacherId = (teachers ?? []).find((t) => t.user_id === userId)?.id as string | undefined;
 
   return (
     <>
@@ -32,6 +39,8 @@ export default async function CoursesPage() {
               .filter((c) => !c.department.is_locked)
               .map((c) => ({ id: c.id, label: className(c), batch: c.batch.name, size: classSizes.get(c.id) ?? 0 }))}
             existing={offerings.map((o) => ({ subject_id: o.subject.id, class_id: o.class.id, term_label: o.term_label }))}
+            teachers={isAdmin ? teacherList : undefined}
+            myTeacherId={myTeacherId}
           />
         }
       />
@@ -56,7 +65,16 @@ export default async function CoursesPage() {
                 <span className="text-xs text-muted-foreground">{o.term_label}</span>
               </div>
               <h3 className="mt-3 font-medium leading-snug">{className(o.class)}</h3>
-              <p className="text-sm text-muted-foreground">{o.subject.name}</p>
+              <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="truncate">{o.subject.name}</span>
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground">
+                {isAdmin && teacherList.length > 1 ? (
+                  <CourseTeacherSelect offeringId={o.id} teacherId={o.teacher.id} teachers={teacherList} />
+                ) : (
+                  <>Teacher: {o.teacher.full_name}</>
+                )}
+              </div>
               <div className="mt-4 flex gap-4 border-t pt-3 text-sm">
                 <div>
                   <div className="tabular font-semibold">{summaries.get(o.id)?.students ?? 0}</div>

@@ -24,8 +24,8 @@ const assets: CardAssets = {
 };
 
 const students: CardStudent[] = [
-  { id: "1", roll_no: "CAR-F26-100", full_name: "Muneeza Mansoor", father_name: "Mansoor Ahmad", gender: "female", qr_token: "3fa85f6457174562", department: "Cardiology", batch: "Batch 3", session: "2026–2030" },
-  { id: "2", roll_no: "CAR-F26-53", full_name: "Muhammad Ahmad Qureshi", father_name: "Muhammad Shahab Qureshi", gender: "male", qr_token: "0c9e1b77a2d44f10", department: "Medical Lab Technology", batch: "Batch 3", session: "2026–2030" },
+  { id: "1", roll_no: "CAR-F26-100", full_name: "Muneeza Mansoor", father_name: "Mansoor Ahmad", gender: "female", qr_token: "3fa85f6457174562", department: "Cardiology", section: "B", batch: "Batch 3", session: "2026–2030" },
+  { id: "2", roll_no: "CAR-F26-53", full_name: "Muhammad Ahmad Qureshi", father_name: "Muhammad Shahab Qureshi", gender: "male", qr_token: "0c9e1b77a2d44f10", department: "Medical Lab Technology", section: "A", batch: "Batch 3", session: "2026–2030" },
   { id: "3", roll_no: "EME-F26-49", full_name: "Muhammad Sulaiman Bangash Khan Yousafzai", father_name: null, gender: null, qr_token: "ffffffffffffffff", department: "Emergency", batch: "Batch 3", session: null },
 ];
 

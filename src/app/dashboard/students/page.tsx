@@ -13,13 +13,19 @@ import { DepartmentCards } from "@/components/common/department-cards";
 import { StudentTable } from "./student-table";
 import { PortalAccountsButton } from "./portal-accounts-button";
 import { DeleteClassButton } from "./delete-class-button";
+import { AddStudentDialog } from "./add-student-dialog";
 
 export const metadata: Metadata = { title: "Students" };
 
 export default async function StudentsPage({ searchParams }: { searchParams: Promise<{ class?: string }> }) {
   const { supabase, profile } = await requireStaff();
   const sp = await searchParams;
-  const classes = await getClasses(supabase);
+  const [classes, { data: batches }, { data: departments }] = await Promise.all([
+    getClasses(supabase),
+    supabase.from("batches").select("id, name, session_label").order("created_at", { ascending: false }),
+    supabase.from("departments").select("code, name, is_locked").order("code"),
+  ]);
+  const addStudent = <AddStudentDialog batches={batches ?? []} departments={departments ?? []} />;
 
   if (!classes.length) {
     return (
@@ -49,9 +55,10 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
               <LinkButton href="/dashboard/students?class=all" variant="outline">
                 <ListIcon /> All students
               </LinkButton>
-              <LinkButton href="/dashboard/import">
+              <LinkButton href="/dashboard/import" variant="outline">
                 <UploadIcon /> Import
               </LinkButton>
+              {addStudent}
             </>
           }
         />
@@ -60,8 +67,9 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
             key: c.id,
             href: `/dashboard/students?class=${c.id}`,
             code: c.department.code,
-            name: c.department.name,
-            subtitle: `${c.batch.name}${c.section ? ` · Sec ${c.section}` : ""}${c.batch.session_label ? ` · ${c.batch.session_label}` : ""}`,
+            name: c.section ? `${c.department.name} · ${c.section}` : c.department.name,
+            subtitle: `${c.section ? `Section ${c.section} · ` : ""}${c.batch.name}`,
+            badge: c.section ?? undefined,
             count: sizes.get(c.id) ?? 0,
             locked: c.department.is_locked,
             lockedNote: "Locked — unlock it in Settings",
@@ -90,6 +98,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
         description={`${students.length} student${students.length === 1 ? "" : "s"}`}
         actions={
           <>
+            {addStudent}
             <PortalAccountsButton eligible={noAccount.filter((s) => s.cnic).map((s) => s.id)} missingCnic={noAccount.filter((s) => !s.cnic).length} />
             {selected && (
               <LinkButton href={`/dashboard/id-cards?class=${selected.id}`} variant="outline">

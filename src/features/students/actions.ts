@@ -5,7 +5,8 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertStaff } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/server";
-import { initialPasswordFromCnic, studentEmail } from "@/config/institute";
+import { initialPasswordFromCnic, sectionForRoll, studentEmail } from "@/config/institute";
+import { ensureClasses, mirrorCourses } from "@/lib/class-placement";
 
 export type ActionState = { error?: string; ok?: string } | undefined;
 
@@ -185,4 +186,65 @@ export async function deleteClass(classId: string): Promise<{ error?: string; st
   revalidatePath("/dashboard", "layout");
   invalidatePublic();
   return { students: students.length };
+}
+
+// ---------- Adding a single student --------------------------------------
+
+const newStudentSchema = z.object({
+  roll_no: z.string().trim().toUpperCase().regex(/^[A-Z]{2,5}-[A-Z]\d{2}-\d{1,4}$/, "Roll number looks like CAR-F26-01"),
+  full_name: z.string().trim().min(2, "Enter the full name").max(120),
+  father_name: z.string().trim().max(120).optional(),
+  gender: z.enum(["male", "female", ""]).optional(),
+  cnic: z
+    .string()
+    .trim()
+    .transform((v) => {
+      const d = v.replace(/\D/g, "");
+      return d.length === 13 ? `${d.slice(0, 5)}-${d.slice(5, 12)}-${d.slice(12)}` : v;
+    })
+    .refine((v) => v === "" || /^\d{5}-\d{7}-\d$/.test(v), "CNIC must have 13 digits"),
+  phone: z.string().trim().max(30).optional(),
+  batch_id: z.string().uuid("Choose a batch"),
+  section: z.enum(["auto", "A", "B"]).default("auto"),
+});
+
+export type NewStudentState = { error?: string; ok?: string; id?: string } | undefined;
+
+/** Adds one student. Department comes from the roll prefix; section from the roll number (1–50 → A) unless chosen. */
+export async function createStudent(_: NewStudentState, fd: FormData): Promise<NewStudentState> {
+  const { supabase } = await assertStaff();
+  const parsed = newStudentSchema.safeParse(Object.fromEntries(fd));
+  if (!parsed.success) return { error: parsed.error.issues[0]?.message };
+  const v = parsed.data;
+  const roll = v.roll_no.replace(/-(\d)$/, "-0$1"); // CAR-F26-1 → CAR-F26-01
+
+  const code = roll.split("-")[0]!;
+  const { data: dept } = await supabase.from("departments").select("id, name, is_locked").eq("code", code).maybeSingle();
+  if (!dept) return { error: `No department with code “${code}”. Add it in Settings first.` };
+  if (dept.is_locked) return { error: `${dept.name} is locked. Unlock it in Settings first.` };
+
+  const section = v.section === "auto" ? sectionForRoll(roll) : v.section;
+  const placement = await ensureClasses(supabase, v.batch_id, [{ departmentId: dept.id, section }]);
+  const classId = placement.classIdOf(dept.id, section);
+  if (placement.error || !classId) return { error: placement.error ?? "Could not find the class." };
+  await mirrorCourses(supabase, v.batch_id, [dept.id]);
+
+  const { data, error } = await supabase
+    .from("students")
+    .insert({
+      roll_no: roll,
+      full_name: v.full_name,
+      father_name: v.father_name || null,
+      gender: v.gender || null,
+      cnic: v.cnic || null,
+      phone: v.phone || null,
+      class_id: classId,
+    })
+    .select("id")
+    .single();
+  if (error) return { error: error.code === "23505" ? `${roll} already exists.` : error.message };
+
+  revalidatePath("/dashboard", "layout");
+  invalidatePublic();
+  return { ok: `${v.full_name} added to ${dept.name} Section ${section}.`, id: data.id };
 }

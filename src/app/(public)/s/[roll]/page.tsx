@@ -49,7 +49,8 @@ export default async function PublicStudentPage({ params }: { params: Promise<{ 
           <div className="min-w-0">
             <h1 className="truncate text-xl font-bold tracking-tight">{student.full_name}</h1>
             <p className="truncate text-sm text-white/85">
-              <span className="font-mono font-semibold">{student.roll_no}</span> · {student.class.batch.name}
+              <span className="font-mono font-semibold">{student.roll_no}</span>
+              {student.class.section ? ` · Section ${student.class.section}` : ""} · {student.class.batch.name}
             </p>
           </div>
         </div>

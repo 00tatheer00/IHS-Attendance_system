@@ -1,12 +1,14 @@
 import type { ClassRow } from "@/lib/types";
 import { TIMEZONE } from "@/config/institute";
 
+/** "BS Dental · Section A · Batch 3" */
 export function className(c: Pick<ClassRow, "department" | "batch" | "section">) {
-  return `BS ${c.department.name} · ${c.batch.name}${c.section ? ` · Sec ${c.section}` : ""}`;
+  return `BS ${c.department.name}${c.section ? ` · Section ${c.section}` : ""} · ${c.batch.name}`;
 }
 
+/** "DEN-A · Batch 3" */
 export function shortClassName(c: Pick<ClassRow, "department" | "batch" | "section">) {
-  return `${c.department.code} · ${c.batch.name}${c.section ? ` ${c.section}` : ""}`;
+  return `${c.department.code}${c.section ? `-${c.section}` : ""} · ${c.batch.name}`;
 }
 
 const dateFmt = new Intl.DateTimeFormat("en-GB", { timeZone: TIMEZONE, day: "numeric", month: "short", year: "numeric" });
