@@ -11,6 +11,7 @@ import { StatCard } from "@/components/common/stat-card";
 import { LinkButton } from "@/components/common/link-button";
 import { percentTone } from "@/components/attendance/status-badge";
 import { StartSessionForm } from "./sessions/start-session-form";
+import { ShareLink } from "@/components/common/share-link";
 
 export const metadata: Metadata = { title: "Home" };
 
@@ -100,7 +101,9 @@ export default async function DashboardHome() {
         />
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-2">
+      <ShareLink />
+
+      <div className="mt-5 grid gap-5 lg:grid-cols-2">
         <section className="rounded-xl border bg-card">
           <div className="flex items-center justify-between border-b px-4 py-3">
             <h2 className="font-medium">This week</h2>

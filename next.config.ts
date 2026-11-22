@@ -16,6 +16,9 @@ const nextConfig: NextConfig = {
   },
   // Native/heavy server-only packages: load from node_modules at runtime instead of bundling.
   serverExternalPackages: ["exceljs", "jspdf", "jspdf-autotable"],
+  async redirects() {
+    return [{ source: "/favicon.ico", destination: "/icons/icon-192.png", permanent: true }];
+  },
   async headers() {
     return [
       {

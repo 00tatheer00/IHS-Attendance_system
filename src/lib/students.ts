@@ -1,6 +1,6 @@
 import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CardStudent } from "@/components/id-card/id-card";
+import type { CardStudent } from "@/components/id-card/card-pdf";
 import { CLASS_SELECT, type StudentWithClass } from "@/lib/types";
 import { fetchAll, signPhotos } from "@/lib/queries";
 

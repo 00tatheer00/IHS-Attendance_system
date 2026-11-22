@@ -1,80 +1,100 @@
 "use client";
-import { useRef, useState } from "react";
-import { DownloadIcon, FileDownIcon, Loader2Icon, RotateCwIcon } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { DownloadIcon, FileDownIcon, Loader2Icon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { CARD_H, CARD_W, IdCardBack, IdCardFront, type CardStudent } from "./id-card";
-import { downloadDataUrl, nodeToPng, singleCardPdf } from "./export";
+import { buildCardPdf, CARD, type CardStudent } from "./card-pdf";
+import { cardFileName, downloadBlob, loadCardAssets, renderPdfPage } from "./card-client";
 
-/** One student's card with a flip preview and PNG/PDF downloads. */
-export function IdCardViewer({ student, scale = 1, className }: { student: CardStudent; scale?: number; className?: string }) {
-  const front = useRef<HTMLDivElement>(null);
-  const back = useRef<HTMLDivElement>(null);
-  const [side, setSide] = useState<"front" | "back">("front");
+/**
+ * Shows a student's ID card (front + back) exactly as it prints — the preview
+ * is rendered from the real PDF — with PDF and PNG downloads.
+ */
+export function IdCardViewer({ student, className }: { student: CardStudent; className?: string }) {
+  const front = useRef<HTMLCanvasElement>(null);
+  const back = useRef<HTMLCanvasElement>(null);
+  const pdfRef = useRef<ArrayBuffer | null>(null);
+  const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
-  const base = student.roll_no;
+  const [failed, setFailed] = useState(false);
 
-  async function run(fn: () => Promise<void>) {
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const doc = buildCardPdf(student, await loadCardAssets([student]));
+        const bytes = doc.output("arraybuffer");
+        if (!alive) return;
+        pdfRef.current = bytes;
+        const scale = (window.devicePixelRatio || 1) * 2.2;
+        await renderPdfPage(bytes, 1, front.current!, scale);
+        await renderPdfPage(bytes, 2, back.current!, scale);
+        if (alive) setReady(true);
+      } catch (e) {
+        console.error(e);
+        if (alive) setFailed(true);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [student]);
+
+  async function downloadPdf() {
+    if (!pdfRef.current) return;
+    downloadBlob(new Blob([pdfRef.current], { type: "application/pdf" }), `${cardFileName(student)}.pdf`);
+  }
+
+  async function downloadPng(page: 1 | 2) {
+    if (!pdfRef.current) return;
     setBusy(true);
     try {
-      await fn();
+      const canvas = document.createElement("canvas");
+      await renderPdfPage(pdfRef.current, page, canvas, 600 / 72); // 600 dpi
+      const blob = await new Promise<Blob>((res) => canvas.toBlob((b) => res(b!), "image/png"));
+      downloadBlob(blob, `${cardFileName(student)}-${page === 1 ? "front" : "back"}.png`);
     } catch {
-      toast.error("Could not create the file. Please try again.");
+      toast.error("Could not create the image.");
     } finally {
       setBusy(false);
     }
   }
 
+  const ratio = `${CARD.w} / ${CARD.h}`;
   return (
     <div className={cn("flex flex-col items-center gap-4", className)}>
-      <button
-        type="button"
-        onClick={() => setSide((s) => (s === "front" ? "back" : "front"))}
-        className="group relative [perspective:1200px]"
-        style={{ width: CARD_W * scale, height: CARD_H * scale }}
-        aria-label={`Show ${side === "front" ? "back" : "front"} of card`}
-      >
-        <div
-          className="relative size-full transition-transform duration-500 [transform-style:preserve-3d]"
-          style={{ transform: side === "back" ? "rotateY(180deg)" : undefined }}
-        >
-          <div className="absolute inset-0 [backface-visibility:hidden]">
-            <div style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}>
-              <IdCardFront ref={front} s={student} />
+      <div className="grid w-full max-w-md grid-cols-2 gap-3">
+        {[
+          [front, "Front"],
+          [back, "Back"],
+        ].map(([ref, label]) => (
+          <figure key={label as string} className="space-y-1.5">
+            <div className="relative overflow-hidden rounded-xl bg-muted shadow-[0_8px_30px_-12px_rgba(30,20,90,.35)] ring-1 ring-black/5" style={{ aspectRatio: ratio }}>
+              <canvas ref={ref as React.RefObject<HTMLCanvasElement>} className={cn("size-full transition-opacity duration-300", ready ? "opacity-100" : "opacity-0")} />
+              {!ready && !failed && <Loader2Icon className="absolute inset-0 m-auto size-6 animate-spin text-muted-foreground" />}
             </div>
-          </div>
-          <div className="absolute inset-0 [backface-visibility:hidden] [transform:rotateY(180deg)]">
-            <div style={{ transform: `scale(${scale})`, transformOrigin: "top left" }}>
-              <IdCardBack ref={back} s={student} />
-            </div>
-          </div>
-        </div>
-        <span className="absolute -right-2 -bottom-2 flex size-8 items-center justify-center rounded-full border bg-card text-muted-foreground shadow-sm transition-colors group-hover:text-foreground">
-          <RotateCwIcon className="size-4" />
-        </span>
-      </button>
-      <p className="text-xs text-muted-foreground">Tap the card to flip it</p>
+            <figcaption className="text-center text-xs text-muted-foreground">{label as string}</figcaption>
+          </figure>
+        ))}
+      </div>
+      {failed && <p className="text-sm text-destructive">Could not build the card. Check your connection and reload.</p>}
       <div className="flex gap-2">
-        <Button onClick={() => run(() => singleCardPdf(front.current!, back.current!, `${base}-id-card.pdf`))} disabled={busy}>
-          {busy ? <Loader2Icon className="animate-spin" /> : <FileDownIcon />}
-          Download PDF
+        <Button onClick={downloadPdf} disabled={!ready} className="h-10">
+          <FileDownIcon /> Download PDF
         </Button>
         <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="outline" disabled={busy} />}>
-            <DownloadIcon /> Image
+          <DropdownMenuTrigger render={<Button variant="outline" className="h-10" disabled={!ready || busy} />}>
+            {busy ? <Loader2Icon className="animate-spin" /> : <DownloadIcon />} Image
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={() => run(async () => downloadDataUrl(await nodeToPng(front.current!), `${base}-front.png`))}>
-              Front (PNG)
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => run(async () => downloadDataUrl(await nodeToPng(back.current!), `${base}-back.png`))}>
-              Back (PNG)
-            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => downloadPng(1)}>Front (PNG)</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => downloadPng(2)}>Back (PNG)</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+      <p className="text-center text-xs text-muted-foreground">PDF: page 1 front, page 2 back · actual card size 54 × 86 mm</p>
     </div>
   );
 }

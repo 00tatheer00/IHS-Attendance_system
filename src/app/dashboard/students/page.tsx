@@ -1,13 +1,15 @@
 import type { Metadata } from "next";
-import { UsersIcon } from "lucide-react";
+import Link from "next/link";
+import { notFound } from "next/navigation";
+import { ArrowLeftIcon, ListIcon, UploadIcon, UsersIcon } from "lucide-react";
 import { requireStaff } from "@/lib/auth";
-import { getClasses, signPhotos } from "@/lib/queries";
+import { getClassSizes, getClasses, signPhotos } from "@/lib/queries";
 import { getStudents } from "@/lib/students";
 import { className, shortClassName } from "@/lib/format";
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState } from "@/components/common/empty-state";
 import { LinkButton } from "@/components/common/link-button";
-import { ClassPicker } from "@/components/common/class-picker";
+import { DepartmentCards } from "@/components/common/department-cards";
 import { StudentTable } from "./student-table";
 import { PortalAccountsButton } from "./portal-accounts-button";
 import { DeleteClassButton } from "./delete-class-button";
@@ -17,8 +19,7 @@ export const metadata: Metadata = { title: "Students" };
 export default async function StudentsPage({ searchParams }: { searchParams: Promise<{ class?: string }> }) {
   const { supabase, profile } = await requireStaff();
   const sp = await searchParams;
-  const [classes, students] = await Promise.all([getClasses(supabase), getStudents(supabase, { classId: sp.class || undefined })]);
-  const photos = await signPhotos(supabase, students.map((s) => s.photo_path));
+  const classes = await getClasses(supabase);
 
   if (!classes.length) {
     return (
@@ -34,40 +35,93 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
     );
   }
 
+  // 1) Overview: one card per department (class)
+  if (!sp.class) {
+    const sizes = await getClassSizes(supabase);
+    const total = [...sizes.values()].reduce((a, b) => a + b, 0);
+    return (
+      <>
+        <PageHeader
+          title="Students"
+          description={`${total} students in ${classes.length} departments. Open a department to see only its students.`}
+          actions={
+            <>
+              <LinkButton href="/dashboard/students?class=all" variant="outline">
+                <ListIcon /> All students
+              </LinkButton>
+              <LinkButton href="/dashboard/import">
+                <UploadIcon /> Import
+              </LinkButton>
+            </>
+          }
+        />
+        <DepartmentCards
+          items={classes.map((c) => ({
+            key: c.id,
+            href: `/dashboard/students?class=${c.id}`,
+            code: c.department.code,
+            name: c.department.name,
+            subtitle: `${c.batch.name}${c.section ? ` · Sec ${c.section}` : ""}${c.batch.session_label ? ` · ${c.batch.session_label}` : ""}`,
+            count: sizes.get(c.id) ?? 0,
+          }))}
+        />
+      </>
+    );
+  }
+
+  // 2) One department (or everyone)
+  const all = sp.class === "all";
+  const selected = all ? null : classes.find((c) => c.id === sp.class);
+  if (!all && !selected) notFound();
+  const students = await getStudents(supabase, { classId: selected?.id });
+  const photos = await signPhotos(supabase, students.map((s) => s.photo_path));
   const noAccount = students.filter((s) => !s.user_id && s.status === "active");
-  const selected = classes.find((c) => c.id === sp.class);
+
   return (
     <>
+      <Link href="/dashboard/students" className="mb-4 inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
+        <ArrowLeftIcon className="size-4" /> All departments
+      </Link>
       <PageHeader
-        title="Students"
-        description={`${students.length} student${students.length === 1 ? "" : "s"}${sp.class ? "" : " in all classes"}`}
+        title={selected ? className(selected) : "All students"}
+        description={`${students.length} student${students.length === 1 ? "" : "s"}`}
         actions={
           <>
-            <ClassPicker classes={classes.map((c) => ({ id: c.id, label: className(c) }))} value={sp.class ?? ""} allLabel="All classes" />
-            <PortalAccountsButton
-              eligible={noAccount.filter((s) => s.cnic).map((s) => s.id)}
-              missingCnic={noAccount.filter((s) => !s.cnic).length}
-            />
+            <PortalAccountsButton eligible={noAccount.filter((s) => s.cnic).map((s) => s.id)} missingCnic={noAccount.filter((s) => !s.cnic).length} />
+            {selected && (
+              <LinkButton href={`/dashboard/id-cards?class=${selected.id}`} variant="outline">
+                ID cards
+              </LinkButton>
+            )}
             {selected && profile.role === "admin" && (
               <DeleteClassButton classId={selected.id} label={className(selected)} code={selected.department.code} students={students.length} />
             )}
           </>
         }
       />
-      <StudentTable
-        students={students.map((s) => ({
-          id: s.id,
-          roll_no: s.roll_no,
-          full_name: s.full_name,
-          father_name: s.father_name,
-          gender: s.gender,
-          status: s.status,
-          has_account: !!s.user_id,
-          has_cnic: !!s.cnic,
-          class_label: shortClassName(s.class),
-          photoUrl: s.photo_path ? (photos.get(s.photo_path) ?? null) : null,
-        }))}
-      />
+      {students.length ? (
+        <StudentTable
+          students={students.map((s) => ({
+            id: s.id,
+            roll_no: s.roll_no,
+            full_name: s.full_name,
+            father_name: s.father_name,
+            gender: s.gender,
+            status: s.status,
+            has_account: !!s.user_id,
+            has_cnic: !!s.cnic,
+            class_label: shortClassName(s.class),
+            photoUrl: s.photo_path ? (photos.get(s.photo_path) ?? null) : null,
+          }))}
+        />
+      ) : (
+        <EmptyState
+          icon={<UsersIcon />}
+          title="No students in this department"
+          description="Import a class list — students are placed in their department automatically from the roll number."
+          action={<LinkButton href="/dashboard/import">Import students</LinkButton>}
+        />
+      )}
     </>
   );
 }

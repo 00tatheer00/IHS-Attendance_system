@@ -39,3 +39,15 @@ export const TIMEZONE = "Asia/Karachi";
 
 /** Prefix written into every QR code so foreign QR codes are ignored instantly. */
 export const QR_PREFIX = "IHS:";
+
+/**
+ * Public student portal (no login): anyone can search students by name,
+ * roll number or department and see their attendance.
+ * `cardDownload`: allow downloading ID cards (with the attendance QR code)
+ * from the public page. Note: anyone could then print a classmate's QR code,
+ * so watch the photo/name that pops up on the scanner.
+ */
+export const PUBLIC_PORTAL = {
+  enabled: true,
+  cardDownload: true,
+} as const;

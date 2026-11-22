@@ -96,7 +96,7 @@ export default async function StudentPage({ params }: { params: Promise<{ id: st
         <aside className="lg:sticky lg:top-6 lg:self-start">
           <div className="rounded-xl border bg-card p-5">
             <h2 className="mb-4 font-medium">ID card</h2>
-            <IdCardViewer student={card!} scale={0.88} />
+            <IdCardViewer student={card!} />
           </div>
         </aside>
       </div>
