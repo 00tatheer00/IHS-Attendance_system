@@ -1,0 +1,41 @@
+/**
+ * Institute-wide settings shown on ID cards, the login page and reports.
+ * Edit here; no other code changes needed.
+ */
+export const INSTITUTE = {
+  name: "Institute of Health Sciences",
+  shortName: "IHS",
+  affiliation: "University of Peshawar",
+  city: "Peshawar",
+  // Shown on the back of ID cards. Fill in when available.
+  address: "Institute of Health Sciences, Peshawar",
+  phone: "",
+  logo: "/ihs-logo.png",
+} as const;
+
+/** Student portal accounts are created with a synthetic email derived from the roll number. */
+export const STUDENT_EMAIL_DOMAIN = "students.ihs.local";
+
+export function studentEmail(rollNo: string) {
+  return `${rollNo.trim().toLowerCase()}@${STUDENT_EMAIL_DOMAIN}`;
+}
+
+/**
+ * Initial student password = last N digits of the CNIC.
+ * Supabase requires at least 6 characters, so N = 6.
+ * Students are forced to change it on first login.
+ */
+export const INITIAL_PASSWORD_DIGITS = 6;
+
+export function initialPasswordFromCnic(cnic: string) {
+  const digits = cnic.replace(/\D/g, "");
+  return digits.length >= INITIAL_PASSWORD_DIGITS ? digits.slice(-INITIAL_PASSWORD_DIGITS) : null;
+}
+
+/** Students below this percentage are flagged "at risk". */
+export const MIN_ATTENDANCE_PCT = 75;
+
+export const TIMEZONE = "Asia/Karachi";
+
+/** Prefix written into every QR code so foreign QR codes are ignored instantly. */
+export const QR_PREFIX = "IHS:";

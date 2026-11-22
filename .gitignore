@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+eng.traineddata
+
+# Local sample data (contains real student records)
+samples/
