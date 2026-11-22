@@ -36,7 +36,7 @@ function Chips({ items }: { items: { key: string; label: React.ReactNode }[] }) 
 export default async function SettingsPage() {
   const { supabase } = await requireStaff();
   const [{ data: depts }, { data: batches }, { data: subjects }] = await Promise.all([
-    supabase.from("departments").select("id, code, name, is_locked").order("code"),
+    supabase.from("departments").select("id, code, name, is_locked, has_sections").order("code"),
     supabase.from("batches").select("id, name, intake_code, session_label").order("created_at"),
     supabase.from("subjects").select("id, code, name").order("code"),
   ]);
@@ -46,7 +46,7 @@ export default async function SettingsPage() {
       <PageHeader title="Settings" description="Departments, batches and subjects used across the system." />
       <div className="grid gap-5 lg:grid-cols-2">
         <Section title="Departments" description="Code = roll-number prefix (CAR-F26-01 → CAR). Locked departments are hidden from students, imports and new courses.">
-          <DepartmentLocks departments={(depts ?? []) as { id: string; code: string; name: string; is_locked: boolean }[]} />
+          <DepartmentLocks departments={(depts ?? []) as { id: string; code: string; name: string; is_locked: boolean; has_sections: boolean }[]} />
           <InlineForm action={addDepartment} submitLabel="Add">
             <Input name="code" placeholder="Code" className="w-24 uppercase" required />
             <Input name="name" placeholder="Name, e.g. Physiotherapy" className="min-w-48 flex-1" required />

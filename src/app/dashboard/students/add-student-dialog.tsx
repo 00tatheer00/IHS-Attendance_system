@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   batches: { id: string; name: string; session_label: string | null }[];
-  departments: { code: string; name: string; is_locked: boolean }[];
+  departments: { code: string; name: string; is_locked: boolean; has_sections: boolean }[];
 }
 
 export function AddStudentDialog({ batches, departments }: Props) {
@@ -40,7 +40,7 @@ export function AddStudentDialog({ batches, departments }: Props) {
   const code = clean.match(/^([A-Z]{2,5})-/)?.[1];
   const dept = departments.find((d) => d.code === code);
   const validRoll = /^[A-Z]{2,5}-[A-Z]\d{2}-\d{1,4}$/.test(clean);
-  const sec = section === "auto" ? (validRoll ? sectionForRoll(clean) : null) : section;
+  const sec = dept && !dept.has_sections ? null : section === "auto" ? (validRoll ? sectionForRoll(clean) : null) : section;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -50,7 +50,7 @@ export function AddStudentDialog({ batches, departments }: Props) {
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Add a student</DialogTitle>
-          <DialogDescription>Department comes from the roll number prefix. Roll 1–50 → Section A, 51+ → Section B.</DialogDescription>
+          <DialogDescription>Department comes from the roll number prefix. In departments with sections, roll 1–50 → Section A, 51+ → Section B.</DialogDescription>
         </DialogHeader>
         <form id="add-student" action={action} className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
@@ -120,7 +120,13 @@ export function AddStudentDialog({ batches, departments }: Props) {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="section">Section</Label>
-            <NativeSelect id="section" name="section" value={section} onChange={(e) => setSection(e.target.value as "auto" | "A" | "B")}>
+            <NativeSelect
+              id="section"
+              name="section"
+              value={dept && !dept.has_sections ? "auto" : section}
+              disabled={!!dept && !dept.has_sections}
+              onChange={(e) => setSection(e.target.value as "auto" | "A" | "B")}
+            >
               <option value="auto">Automatic (by roll number)</option>
               <option value="A">Section A</option>
               <option value="B">Section B</option>

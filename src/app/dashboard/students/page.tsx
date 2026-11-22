@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeftIcon, ListIcon, UploadIcon, UsersIcon } from "lucide-react";
 import { requireStaff } from "@/lib/auth";
-import { getClassSizes, getClasses, signPhotos } from "@/lib/queries";
+import { getClassSizes, getMyClasses, signPhotos } from "@/lib/queries";
 import { getStudents } from "@/lib/students";
 import { className, shortClassName } from "@/lib/format";
 import { PageHeader } from "@/components/common/page-header";
@@ -21,9 +21,9 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
   const { supabase, profile } = await requireStaff();
   const sp = await searchParams;
   const [classes, { data: batches }, { data: departments }] = await Promise.all([
-    getClasses(supabase),
+    getMyClasses(supabase, profile.role === "admin"),
     supabase.from("batches").select("id, name, session_label").order("created_at", { ascending: false }),
-    supabase.from("departments").select("code, name, is_locked").order("code"),
+    supabase.from("departments").select("code, name, is_locked, has_sections").order("code"),
   ]);
   const addStudent = <AddStudentDialog batches={batches ?? []} departments={departments ?? []} />;
 

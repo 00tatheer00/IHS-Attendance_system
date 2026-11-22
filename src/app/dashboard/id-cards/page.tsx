@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeftIcon, ContactRoundIcon } from "lucide-react";
 import { requireStaff } from "@/lib/auth";
-import { getClassSizes, getClasses } from "@/lib/queries";
+import { getClassSizes, getMyClasses } from "@/lib/queries";
 import { getStudents, toCardStudents } from "@/lib/students";
 import { className } from "@/lib/format";
 import { PageHeader } from "@/components/common/page-header";
@@ -15,8 +15,8 @@ import { CardSheet } from "./card-sheet";
 export const metadata: Metadata = { title: "ID cards" };
 
 export default async function IdCardsPage({ searchParams }: { searchParams: Promise<{ class?: string }> }) {
-  const { supabase } = await requireStaff();
-  const [classes, sizes] = await Promise.all([getClasses(supabase), getClassSizes(supabase)]);
+  const { supabase, profile } = await requireStaff();
+  const [classes, sizes] = await Promise.all([getMyClasses(supabase, profile.role === "admin"), getClassSizes(supabase)]);
   const sp = await searchParams;
 
   if (!classes.length) {

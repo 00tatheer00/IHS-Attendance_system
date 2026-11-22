@@ -6,7 +6,7 @@ import { assertStaff } from "@/lib/auth";
 import type { RawRow } from "./normalize";
 import { readSpreadsheet } from "./spreadsheet";
 import { ensureClasses, mirrorCourses } from "@/lib/class-placement";
-import { sectionForRoll } from "@/config/institute";
+import { sectionFor } from "@/config/institute";
 
 export async function parseSpreadsheet(formData: FormData): Promise<{ rows?: RawRow[]; error?: string }> {
   await assertStaff();
@@ -47,20 +47,22 @@ export async function commitImport(input: z.infer<typeof commitSchema>): Promise
   const { batchId, rows } = parsed.data;
 
   // Departments → ensure a class exists for every (department, batch)
-  const { data: depts, error: dErr } = await supabase.from("departments").select("id, code, is_locked");
+  const { data: depts, error: dErr } = await supabase.from("departments").select("id, code, is_locked, has_sections");
   if (dErr) return { created: 0, updated: 0, error: dErr.message };
   const deptId = new Map(depts!.map((d) => [d.code as string, d.id as string]));
+  const hasSections = new Map(depts!.map((d) => [d.code as string, d.has_sections as boolean]));
+  const sectionOf = (r: { roll_no: string; department_code: string }) => sectionFor(r.roll_no, hasSections.get(r.department_code) ?? true);
   const codes = [...new Set(rows.map((r) => r.department_code))];
   const unknown = codes.filter((c) => !deptId.has(c));
   if (unknown.length) return { created: 0, updated: 0, error: `Unknown department code(s): ${unknown.join(", ")}` };
   const locked = depts!.filter((d) => d.is_locked && codes.includes(d.code)).map((d) => d.code);
   if (locked.length) return { created: 0, updated: 0, error: `Locked department(s): ${locked.join(", ")}. Unlock in Settings first.` };
 
-  // Place each student in their department's section class (roll 1–50 → A, 51+ → B)
+  // Place each student in their class: sectioned departments split roll 1–50 → A, 51+ → B
   const placement = await ensureClasses(
     supabase,
     batchId,
-    rows.map((r) => ({ departmentId: deptId.get(r.department_code)!, section: sectionForRoll(r.roll_no) })),
+    rows.map((r) => ({ departmentId: deptId.get(r.department_code)!, section: sectionOf(r) })),
   );
   if (placement.error) return { created: 0, updated: 0, error: placement.error };
 
@@ -81,7 +83,7 @@ export async function commitImport(input: z.infer<typeof commitSchema>): Promise
       roll_no: r.roll_no,
       full_name: r.full_name,
       father_name: r.father_name || null,
-      class_id: placement.classIdOf(deptId.get(r.department_code)!, sectionForRoll(r.roll_no))!,
+      class_id: placement.classIdOf(deptId.get(r.department_code)!, sectionOf(r))!,
       gender: r.gender ?? prev?.gender ?? null,
       cnic: r.cnic || prev?.cnic || null,
       phone: r.phone || prev?.phone || null,

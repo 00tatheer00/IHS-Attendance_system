@@ -131,6 +131,22 @@ await as(ADMIN, () => db.query(`insert into public.classes (department_id, batch
 assert.equal((await one<{ n: number }>(`select count(*)::int n from public.classes`))!.n, 1);
 console.log("✓ class upsert with null section is idempotent");
 
+// --- RLS: a second teacher sees only their own courses
+const T2 = "00000000-0000-0000-0000-00000000000c";
+await db.exec(`insert into auth.users values ('${T2}', 't2@ihs');
+  insert into public.profiles (id, role, full_name) values ('${T2}', 'teacher', 'Teacher Two');
+  insert into public.teachers (user_id, full_name) values ('${T2}', 'Teacher Two');`);
+await as(T2, async () => {
+  assert.equal((await db.query(`select id from public.course_offerings`)).rows.length, 0);
+  assert.equal((await db.query(`select 1 from public.enrollments`)).rows.length, 0);
+  assert.equal((await db.query(`select 1 from public.sessions`)).rows.length, 0);
+  await assert.rejects(db.query(`select public.mark_attendance($1,$2)`, [ses!.id, t1]), /not allowed/);
+  assert.equal((await db.query(`select 1 from public.students`)).rows.length, 0);
+});
+assert.equal((await as(ADMIN, () => db.query(`select id from public.course_offerings`))).rows.length, 1);
+assert.equal((await as(ADMIN, () => db.query(`select 1 from public.students`))).rows.length, 4);
+console.log("✓ RLS: other teachers can't see someone else's course or students; admin sees all");
+
 // --- RLS: student sees only self
 await as(STU_USER, async () => {
   const studs = await db.query(`select roll_no from public.students`);

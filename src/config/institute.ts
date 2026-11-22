@@ -58,6 +58,11 @@ export const PUBLIC_PORTAL = {
  */
 export const SECTION_SPLIT_AT = 50;
 
+/** Section for a student, or null when the department isn't split into sections. */
+export function sectionFor(rollNo: string, hasSections: boolean): "A" | "B" | null {
+  return hasSections ? sectionForRoll(rollNo) : null;
+}
+
 export function sectionForRoll(rollNo: string): "A" | "B" {
   const n = Number(rollNo.match(/(\d+)$/)?.[1] ?? 0);
   return n <= SECTION_SPLIT_AT ? "A" : "B";

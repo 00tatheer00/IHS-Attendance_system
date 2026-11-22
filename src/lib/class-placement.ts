@@ -9,9 +9,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export async function ensureClasses(
   supabase: SupabaseClient,
   batchId: string,
-  pairs: { departmentId: string; section: string }[],
-): Promise<{ error?: string; classIdOf: (departmentId: string, section: string) => string | undefined }> {
-  const unique = [...new Map(pairs.map((p) => [`${p.departmentId}:${p.section}`, p])).values()];
+  pairs: { departmentId: string; section: string | null }[],
+): Promise<{ error?: string; classIdOf: (departmentId: string, section: string | null) => string | undefined }> {
+  const unique = [...new Map(pairs.map((p) => [`${p.departmentId}:${p.section ?? ""}`, p])).values()];
   if (unique.length) {
     const { error } = await supabase.from("classes").upsert(
       unique.map((p) => ({ department_id: p.departmentId, batch_id: batchId, section: p.section })),
@@ -22,7 +22,7 @@ export async function ensureClasses(
   const { data, error } = await supabase.from("classes").select("id, department_id, section").eq("batch_id", batchId);
   if (error) return { error: error.message, classIdOf: () => undefined };
   const map = new Map((data ?? []).map((c) => [`${c.department_id}:${c.section ?? ""}`, c.id as string]));
-  return { classIdOf: (d, s) => map.get(`${d}:${s}`) };
+  return { classIdOf: (d, s) => map.get(`${d}:${s ?? ""}`) };
 }
 
 /**

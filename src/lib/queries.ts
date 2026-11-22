@@ -28,6 +28,18 @@ export async function getClasses(supabase: SupabaseClient) {
   );
 }
 
+/**
+ * Classes the viewer works with: all for the admin, otherwise only the classes
+ * of the teacher's own courses.
+ */
+export async function getMyClasses(supabase: SupabaseClient, isAdmin: boolean) {
+  const classes = await getClasses(supabase);
+  if (isAdmin) return classes;
+  const { data } = await supabase.from("course_offerings").select("class_id");
+  const mine = new Set((data ?? []).map((o) => o.class_id as string));
+  return classes.filter((c) => mine.has(c.id));
+}
+
 export async function getClassSizes(supabase: SupabaseClient) {
   const { data } = await supabase.from("class_summary").select("class_id, students");
   return new Map((data ?? []).map((r) => [r.class_id as string, Number(r.students)]));

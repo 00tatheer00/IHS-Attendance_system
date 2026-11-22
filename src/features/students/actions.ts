@@ -219,11 +219,11 @@ export async function createStudent(_: NewStudentState, fd: FormData): Promise<N
   const roll = v.roll_no.replace(/-(\d)$/, "-0$1"); // CAR-F26-1 → CAR-F26-01
 
   const code = roll.split("-")[0]!;
-  const { data: dept } = await supabase.from("departments").select("id, name, is_locked").eq("code", code).maybeSingle();
+  const { data: dept } = await supabase.from("departments").select("id, name, is_locked, has_sections").eq("code", code).maybeSingle();
   if (!dept) return { error: `No department with code “${code}”. Add it in Settings first.` };
   if (dept.is_locked) return { error: `${dept.name} is locked. Unlock it in Settings first.` };
 
-  const section = v.section === "auto" ? sectionForRoll(roll) : v.section;
+  const section = !dept.has_sections ? null : v.section === "auto" ? sectionForRoll(roll) : v.section;
   const placement = await ensureClasses(supabase, v.batch_id, [{ departmentId: dept.id, section }]);
   const classId = placement.classIdOf(dept.id, section);
   if (placement.error || !classId) return { error: placement.error ?? "Could not find the class." };
@@ -246,5 +246,5 @@ export async function createStudent(_: NewStudentState, fd: FormData): Promise<N
 
   revalidatePath("/dashboard", "layout");
   invalidatePublic();
-  return { ok: `${v.full_name} added to ${dept.name} Section ${section}.`, id: data.id };
+  return { ok: `${v.full_name} added to ${dept.name}${section ? ` Section ${section}` : ""}.`, id: data.id };
 }

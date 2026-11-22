@@ -11,6 +11,7 @@ interface Dept {
   code: string;
   name: string;
   is_locked: boolean;
+  has_sections: boolean;
 }
 
 /** Department list with a lock switch per department. */
@@ -44,7 +45,10 @@ export function DepartmentLocks({ departments }: { departments: Dept[] }) {
           >
             {d.code}
           </span>
-          <span className={cn("flex-1 text-sm font-medium", d.is_locked && "text-muted-foreground")}>{d.name}</span>
+          <span className={cn("flex-1 text-sm font-medium", d.is_locked && "text-muted-foreground")}>
+            {d.name}
+            <span className="block text-xs font-normal text-muted-foreground">{d.has_sections ? "Sections A & B (roll 1–50 / 51+)" : "Single class"}</span>
+          </span>
           <button
             type="button"
             role="switch"
