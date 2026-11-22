@@ -125,3 +125,57 @@ export async function resetPortalPassword(studentId: string): Promise<{ error?: 
   await admin.from("profiles").update({ must_change_password: true }).eq("id", s.user_id);
   return { ok: `Password reset. ${s.roll_no} can sign in with the last 6 digits of their CNIC.` };
 }
+
+// ---------- Deleting ---------------------------------------------------
+
+/** Removes photos and portal logins that belonged to deleted students. */
+async function cleanupStudentFiles(rows: { user_id: string | null; photo_path: string | null }[]) {
+  const admin = createAdminClient();
+  const photos = rows.map((r) => r.photo_path).filter((p): p is string => !!p);
+  for (let i = 0; i < photos.length; i += 100) await admin.storage.from("student-photos").remove(photos.slice(i, i + 100));
+  // Deleting the auth user also deletes the profile (on delete cascade).
+  for (const r of rows) if (r.user_id) await admin.auth.admin.deleteUser(r.user_id);
+}
+
+/** Permanently deletes one student with their attendance, photo and portal login. */
+export async function deleteStudent(id: string): Promise<{ error?: string }> {
+  const { supabase } = await assertStaff();
+  const { data: s, error: readErr } = await supabase.from("students").select("user_id, photo_path").eq("id", id).maybeSingle();
+  if (readErr) return { error: readErr.message };
+  if (!s) return { error: "Student not found." };
+  const { error } = await supabase.from("students").delete().eq("id", id);
+  if (error) return { error: error.message };
+  await cleanupStudentFiles([s]);
+  revalidatePath("/dashboard", "layout");
+  return {};
+}
+
+/**
+ * Permanently deletes a class: its courses (with their classes held and
+ * attendance), every student in it (with photos and portal logins), then the
+ * class itself.
+ */
+export async function deleteClass(classId: string): Promise<{ error?: string; students?: number }> {
+  const { supabase, profile } = await assertStaff();
+  // Admin only: a teacher can't see other teachers' courses, so a partial delete would be possible.
+  if (profile.role !== "admin") return { error: "Only an administrator can delete a whole class." };
+
+  const students: { user_id: string | null; photo_path: string | null }[] = [];
+  for (let from = 0; ; from += 1000) {
+    const { data, error } = await supabase.from("students").select("user_id, photo_path").eq("class_id", classId).range(from, from + 999);
+    if (error) return { error: error.message };
+    students.push(...(data ?? []));
+    if (!data || data.length < 1000) break;
+  }
+
+  const off = await supabase.from("course_offerings").delete().eq("class_id", classId);
+  if (off.error) return { error: `Could not delete the class’s courses: ${off.error.message}` };
+  const st = await supabase.from("students").delete().eq("class_id", classId);
+  if (st.error) return { error: st.error.message };
+  const cl = await supabase.from("classes").delete().eq("id", classId);
+  if (cl.error) return { error: cl.error.message };
+
+  await cleanupStudentFiles(students);
+  revalidatePath("/dashboard", "layout");
+  return { students: students.length };
+}

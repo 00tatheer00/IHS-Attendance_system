@@ -10,11 +10,12 @@ import { LinkButton } from "@/components/common/link-button";
 import { ClassPicker } from "@/components/common/class-picker";
 import { StudentTable } from "./student-table";
 import { PortalAccountsButton } from "./portal-accounts-button";
+import { DeleteClassButton } from "./delete-class-button";
 
 export const metadata: Metadata = { title: "Students" };
 
 export default async function StudentsPage({ searchParams }: { searchParams: Promise<{ class?: string }> }) {
-  const { supabase } = await requireStaff();
+  const { supabase, profile } = await requireStaff();
   const sp = await searchParams;
   const [classes, students] = await Promise.all([getClasses(supabase), getStudents(supabase, { classId: sp.class || undefined })]);
   const photos = await signPhotos(supabase, students.map((s) => s.photo_path));
@@ -34,6 +35,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
   }
 
   const noAccount = students.filter((s) => !s.user_id && s.status === "active");
+  const selected = classes.find((c) => c.id === sp.class);
   return (
     <>
       <PageHeader
@@ -46,6 +48,9 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
               eligible={noAccount.filter((s) => s.cnic).map((s) => s.id)}
               missingCnic={noAccount.filter((s) => !s.cnic).length}
             />
+            {selected && profile.role === "admin" && (
+              <DeleteClassButton classId={selected.id} label={className(selected)} code={selected.department.code} students={students.length} />
+            )}
           </>
         }
       />

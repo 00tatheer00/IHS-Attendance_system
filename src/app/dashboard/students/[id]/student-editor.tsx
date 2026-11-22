@@ -1,7 +1,7 @@
 "use client";
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { CameraIcon, KeyRoundIcon, Loader2Icon, QrCodeIcon, Trash2Icon } from "lucide-react";
+import { CameraIcon, KeyRoundIcon, Loader2Icon, QrCodeIcon, Trash2Icon, UserXIcon } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,7 @@ import { NativeSelect } from "@/components/common/native-select";
 import { createClient } from "@/lib/supabase/client";
 import {
   createPortalAccounts,
+  deleteStudent,
   regenerateQr,
   resetPortalPassword,
   setStudentPhoto,
@@ -212,6 +213,43 @@ export function StudentEditor({ student }: Props) {
             </AlertDialog>
           </Row>
         </div>
+      </section>
+
+      <section className="rounded-xl border border-destructive/30 bg-card">
+        <Row
+          title="Delete student"
+          text="Permanently removes this student, all their attendance records, photo and portal login. This cannot be undone."
+        >
+          <AlertDialog>
+            <AlertDialogTrigger render={<Button variant="destructive" disabled={busy} />}>
+              <UserXIcon /> Delete
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete {student.full_name}?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  {student.roll_no} and all of their attendance records will be permanently deleted. This cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  variant="destructive"
+                  onClick={() =>
+                    start(async () => {
+                      const r = await deleteStudent(student.id);
+                      if (r.error) return void toast.error(r.error);
+                      toast.success(`${student.full_name} deleted.`);
+                      router.replace("/dashboard/students");
+                    })
+                  }
+                >
+                  Delete permanently
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </Row>
       </section>
     </div>
   );
