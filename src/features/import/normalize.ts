@@ -81,6 +81,8 @@ const nameKey = (name: string, father: string) =>
 
 export interface NormalizeOptions {
   knownDepartments: string[];
+  /** Department codes that are locked: their rows are skipped. */
+  lockedDepartments?: string[];
   /** roll_no → existing student (for "will update" and duplicate detection) */
   existing: Map<string, { full_name: string; father_name: string | null }>;
   fixCapitalisation: boolean;
@@ -129,6 +131,10 @@ export function normalizeRows(raw: RawRow[], opts: NormalizeOptions): ReviewRow[
       warnings: [],
     };
     if (!name) row.warnings.push("Empty seat — no name (skipped)");
+    else if (opts.lockedDepartments?.includes(row.department_code)) {
+      row.include = false;
+      row.warnings.push(`Locked department ${row.department_code} (skipped)`);
+    }
     rows.push(row);
 
     const prev = seenRoll.get(roll);
@@ -156,7 +162,7 @@ export function validateRows(rows: ReviewRow[], opts: Pick<NormalizeOptions, "kn
 
   for (const r of rows) {
     r.issues = [];
-    r.warnings = r.warnings.filter((w) => w.startsWith("Empty seat") || w.startsWith("Duplicate roll"));
+    r.warnings = r.warnings.filter((w) => w.startsWith("Empty seat") || w.startsWith("Duplicate roll") || w.startsWith("Locked department"));
     if (!r.include) continue;
 
     if (!r.full_name) r.issues.push("Name is required");

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeftIcon, ListIcon, UploadIcon, UsersIcon } from "lucide-react";
 import { requireStaff } from "@/lib/auth";
 import { getClassSizes, getClasses, signPhotos } from "@/lib/queries";
@@ -63,6 +63,8 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
             name: c.department.name,
             subtitle: `${c.batch.name}${c.section ? ` · Sec ${c.section}` : ""}${c.batch.session_label ? ` · ${c.batch.session_label}` : ""}`,
             count: sizes.get(c.id) ?? 0,
+            locked: c.department.is_locked,
+            lockedNote: "Locked — unlock it in Settings",
           }))}
         />
       </>
@@ -73,7 +75,8 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
   const all = sp.class === "all";
   const selected = all ? null : classes.find((c) => c.id === sp.class);
   if (!all && !selected) notFound();
-  const students = await getStudents(supabase, { classId: selected?.id });
+  if (selected?.department.is_locked) redirect("/dashboard/students");
+  const students = (await getStudents(supabase, { classId: selected?.id })).filter((s) => !s.class.department.is_locked);
   const photos = await signPhotos(supabase, students.map((s) => s.photo_path));
   const noAccount = students.filter((s) => !s.user_id && s.status === "active");
 

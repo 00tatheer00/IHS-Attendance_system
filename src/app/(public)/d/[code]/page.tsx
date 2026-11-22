@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeftIcon } from "lucide-react";
+import { ArrowLeftIcon, LockIcon } from "lucide-react";
 import { getPublicDepartment, searchStudents } from "@/lib/public";
 import { DepartmentStudentList } from "./department-student-list";
 import { deptTheme } from "@/lib/dept-theme";
@@ -14,6 +14,7 @@ export async function generateMetadata({ params }: { params: Promise<{ code: str
 export default async function PublicDepartmentPage({ params }: { params: Promise<{ code: string }> }) {
   const dept = await getPublicDepartment((await params).code);
   if (!dept) notFound();
+  if (dept.is_locked) return <LockedDepartment name={dept.name} code={dept.code} />;
   const students = await searchStudents("", dept.code);
 
   return (
@@ -39,6 +40,22 @@ export default async function PublicDepartmentPage({ params }: { params: Promise
       <DepartmentStudentList
         students={students.map((s) => ({ id: s.id, roll_no: s.roll_no, full_name: s.full_name, gender: s.gender, batch: s.class.batch.name }))}
       />
+    </div>
+  );
+}
+
+function LockedDepartment({ name, code }: { name: string; code: string }) {
+  return (
+    <div className="flex flex-col items-center px-6 py-16 text-center">
+      <div className="mb-4 flex size-16 items-center justify-center rounded-3xl bg-muted text-muted-foreground">
+        <LockIcon className="size-7" />
+      </div>
+      <p className="font-mono text-xs font-semibold text-muted-foreground">{code}</p>
+      <h1 className="text-xl font-bold tracking-tight">BS {name} is locked</h1>
+      <p className="mt-1 max-w-xs text-sm text-muted-foreground">Attendance for this department isn’t available here yet.</p>
+      <Link href="/" className="pressable mt-6 inline-flex h-10 items-center gap-1.5 rounded-xl border bg-card px-4 text-sm font-medium hover:bg-muted">
+        <ArrowLeftIcon className="size-4" /> All departments
+      </Link>
     </div>
   );
 }

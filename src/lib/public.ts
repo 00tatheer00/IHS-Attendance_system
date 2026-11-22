@@ -27,8 +27,8 @@ const clean = (q: string) => q.replace(/[^\p{L}\p{N}\s-]/gu, " ").replace(/\s+/g
 
 async function getPublicDepartmentsRaw() {
   const db = createAdminClient();
-  const { data } = await db.from("departments").select("id, code, name").order("code");
-  return (data ?? []) as { id: string; code: string; name: string }[];
+  const { data } = await db.from("departments").select("id, code, name, is_locked").order("code");
+  return (data ?? []) as { id: string; code: string; name: string; is_locked: boolean }[];
 }
 
 async function searchStudentsRaw(query: string, deptCode?: string): Promise<PublicStudent[]> {
@@ -36,10 +36,19 @@ async function searchStudentsRaw(query: string, deptCode?: string): Promise<Publ
   if (q.length < 2 && !deptCode) return [];
   const db = createAdminClient();
 
+  // Students of locked departments never appear publicly
+  const { data: lockedDepts } = await db.from("departments").select("id").eq("is_locked", true);
+  const lockedDeptIds = (lockedDepts ?? []).map((d) => d.id as string);
+  let lockedClassIds: string[] = [];
+  if (lockedDeptIds.length) {
+    const { data: lc } = await db.from("classes").select("id").in("department_id", lockedDeptIds);
+    lockedClassIds = (lc ?? []).map((c) => c.id as string);
+  }
+
   let classIds: string[] | null = null;
   if (deptCode) {
-    const { data: dept } = await db.from("departments").select("id").eq("code", deptCode).maybeSingle();
-    if (!dept) return [];
+    const { data: dept } = await db.from("departments").select("id, is_locked").eq("code", deptCode).maybeSingle();
+    if (!dept || dept.is_locked) return [];
     const { data: cls } = await db.from("classes").select("id").eq("department_id", dept.id);
     classIds = (cls ?? []).map((c) => c.id);
     if (!classIds.length) return [];
@@ -47,6 +56,7 @@ async function searchStudentsRaw(query: string, deptCode?: string): Promise<Publ
 
   let req = db.from("students").select(PUBLIC_SELECT).eq("status", "active").limit(q ? 60 : 1000);
   if (classIds) req = req.in("class_id", classIds);
+  else if (lockedClassIds.length) req = req.not("class_id", "in", `(${lockedClassIds.join(",")})`);
   if (q) {
     // every word must match the name, or the whole query matches the roll number
     const words = q.split(" ").filter(Boolean);
@@ -67,6 +77,7 @@ async function getPublicStudentRaw(roll: string) {
     .maybeSingle();
   if (!data) return null;
   const s = data as unknown as PublicStudent & { father_name: string | null; qr_token: string; photo_path: string | null };
+  if (s.class.department.is_locked) return null;
 
   const [attendance, photos] = await Promise.all([getStudentAttendance(db, s.id), signPhotos(db, [s.photo_path])]);
   const photoUrl = s.photo_path ? (photos.get(s.photo_path) ?? null) : null;
@@ -89,20 +100,26 @@ async function getPublicStudentRaw(roll: string) {
 async function getPublicDepartmentCardsRaw() {
   const db = createAdminClient();
   const [{ data: depts }, { data: classes }, { data: sizes }] = await Promise.all([
-    db.from("departments").select("id, code, name").order("name"),
+    db.from("departments").select("id, code, name, is_locked").order("name"),
     db.from("classes").select("id, department_id"),
     db.from("class_summary").select("class_id, students"),
   ]);
   const size = new Map((sizes ?? []).map((s) => [s.class_id as string, Number(s.students)]));
   const count = new Map<string, number>();
   for (const c of classes ?? []) count.set(c.department_id, (count.get(c.department_id) ?? 0) + (size.get(c.id) ?? 0));
-  return (depts ?? []).map((d) => ({ id: d.id as string, code: d.code as string, name: d.name as string, count: count.get(d.id) ?? 0 }));
+  return (depts ?? []).map((d) => ({
+    id: d.id as string,
+    code: d.code as string,
+    name: d.name as string,
+    locked: Boolean(d.is_locked),
+    count: count.get(d.id) ?? 0,
+  }));
 }
 
 async function getPublicDepartmentRaw(code: string) {
   const db = createAdminClient();
-  const { data } = await db.from("departments").select("id, code, name").eq("code", code.toUpperCase()).maybeSingle();
-  return data as { id: string; code: string; name: string } | null;
+  const { data } = await db.from("departments").select("id, code, name, is_locked").eq("code", code.toUpperCase()).maybeSingle();
+  return data as { id: string; code: string; name: string; is_locked: boolean } | null;
 }
 
 // ---------- Cached entry points -----------------------------------------

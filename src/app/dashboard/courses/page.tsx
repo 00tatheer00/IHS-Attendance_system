@@ -28,7 +28,9 @@ export default async function CoursesPage() {
         actions={
           <NewCourses
             subjects={subjects ?? []}
-            classes={classes.map((c) => ({ id: c.id, label: className(c), batch: c.batch.name, size: classSizes.get(c.id) ?? 0 }))}
+            classes={classes
+              .filter((c) => !c.department.is_locked)
+              .map((c) => ({ id: c.id, label: className(c), batch: c.batch.name, size: classSizes.get(c.id) ?? 0 }))}
             existing={offerings.map((o) => ({ subject_id: o.subject.id, class_id: o.class.id, term_label: o.term_label }))}
           />
         }

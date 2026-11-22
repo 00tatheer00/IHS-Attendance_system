@@ -40,3 +40,14 @@ export async function addBatch(_: ActionState, fd: FormData) {
 export async function addSubject(_: ActionState, fd: FormData) {
   return insert("subjects", subjectSchema, fd, "subject");
 }
+
+/** Lock/unlock a department (hidden from the public portal, imports and new courses while locked). */
+export async function setDepartmentLock(id: string, locked: boolean): Promise<{ error?: string }> {
+  const { supabase, profile } = await assertStaff();
+  if (profile.role !== "admin") return { error: "Only an administrator can lock departments." };
+  const { error } = await supabase.from("departments").update({ is_locked: locked }).eq("id", id);
+  if (error) return { error: error.message };
+  revalidatePath("/dashboard", "layout");
+  invalidatePublic();
+  return {};
+}

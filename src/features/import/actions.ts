@@ -45,12 +45,14 @@ export async function commitImport(input: z.infer<typeof commitSchema>): Promise
   const { batchId, rows } = parsed.data;
 
   // Departments → ensure a class exists for every (department, batch)
-  const { data: depts, error: dErr } = await supabase.from("departments").select("id, code");
+  const { data: depts, error: dErr } = await supabase.from("departments").select("id, code, is_locked");
   if (dErr) return { created: 0, updated: 0, error: dErr.message };
   const deptId = new Map(depts!.map((d) => [d.code as string, d.id as string]));
   const codes = [...new Set(rows.map((r) => r.department_code))];
   const unknown = codes.filter((c) => !deptId.has(c));
   if (unknown.length) return { created: 0, updated: 0, error: `Unknown department code(s): ${unknown.join(", ")}` };
+  const locked = depts!.filter((d) => d.is_locked && codes.includes(d.code)).map((d) => d.code);
+  if (locked.length) return { created: 0, updated: 0, error: `Locked department(s): ${locked.join(", ")}. Unlock in Settings first.` };
 
   const { error: cErr } = await supabase.from("classes").upsert(
     codes.map((c) => ({ department_id: deptId.get(c), batch_id: batchId, section: null })),

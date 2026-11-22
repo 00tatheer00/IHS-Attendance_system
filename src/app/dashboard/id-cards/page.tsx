@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeftIcon, ContactRoundIcon } from "lucide-react";
 import { requireStaff } from "@/lib/auth";
 import { getClassSizes, getClasses } from "@/lib/queries";
@@ -45,6 +45,8 @@ export default async function IdCardsPage({ searchParams }: { searchParams: Prom
             name: c.department.name,
             subtitle: c.batch.name,
             count: sizes.get(c.id) ?? 0,
+            locked: c.department.is_locked,
+            lockedNote: "Locked — unlock it in Settings",
           }))}
         />
       </>
@@ -53,6 +55,7 @@ export default async function IdCardsPage({ searchParams }: { searchParams: Prom
 
   const current = classes.find((c) => c.id === sp.class);
   if (!current) notFound();
+  if (current.department.is_locked) redirect("/dashboard/id-cards");
   const students = await toCardStudents(supabase, (await getStudents(supabase, { classId: current.id })).filter((s) => s.status === "active"));
 
   return (

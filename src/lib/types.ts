@@ -14,6 +14,7 @@ export interface Department {
   id: string;
   code: string;
   name: string;
+  is_locked: boolean;
 }
 
 export interface Batch {
@@ -80,7 +81,7 @@ export interface CourseStats {
 }
 
 /** Select fragment that returns a class with its department and batch. */
-export const CLASS_SELECT = "id, section, department:departments(id, code, name), batch:batches(id, name, intake_code, session_label)";
+export const CLASS_SELECT = "id, section, department:departments(id, code, name, is_locked), batch:batches(id, name, intake_code, session_label)";
 
 export const OFFERING_SELECT = `id, term_label, is_active,
   subject:subjects(id, code, name),

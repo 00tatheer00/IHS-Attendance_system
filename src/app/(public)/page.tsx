@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Check your attendance" };
 
 export default async function PublicHome() {
   const departments = await getPublicDepartmentCards();
-  const total = departments.reduce((a, d) => a + d.count, 0);
+  const total = departments.filter((d) => !d.locked).reduce((a, d) => a + d.count, 0);
 
   return (
     <div className="space-y-6">
@@ -34,7 +34,18 @@ export default async function PublicHome() {
 
       <section>
         <h2 className="mb-3 px-1 text-xs font-semibold tracking-wider text-muted-foreground uppercase">Departments</h2>
-        <DepartmentCards items={departments.map((d) => ({ key: d.id, href: `/d/${d.code}`, code: d.code, name: d.name, subtitle: `BS ${d.name}`, count: d.count }))} />
+        <DepartmentCards
+          items={departments.map((d) => ({
+            key: d.id,
+            href: `/d/${d.code}`,
+            code: d.code,
+            name: d.name,
+            subtitle: `BS ${d.name}`,
+            count: d.count,
+            locked: d.locked,
+            lockedNote: "Not available yet",
+          }))}
+        />
       </section>
 
       <InstallPrompt />

@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   batches: { id: string; name: string; session_label: string | null }[];
-  departments: { code: string; name: string }[];
+  departments: { code: string; name: string; is_locked: boolean }[];
   existing: { roll_no: string; full_name: string; father_name: string | null }[];
 }
 
@@ -73,7 +73,12 @@ export function ImportWizard({ batches, departments, existing }: Props) {
         if (res.error) throw new Error(res.error);
         raw = res.rows!;
       }
-      const normalized = normalizeRows(raw, { ...validateOpts, fixCapitalisation: fixCaps, ocr });
+      const normalized = normalizeRows(raw, {
+        ...validateOpts,
+        lockedDepartments: departments.filter((d) => d.is_locked).map((d) => d.code),
+        fixCapitalisation: fixCaps,
+        ocr,
+      });
       if (!normalized.length) throw new Error("No roll numbers were found in this file.");
       setUsedOcr(ocr);
       setRows(normalized);
@@ -325,7 +330,7 @@ function Review({
   rows: ReviewRow[];
   usedOcr: boolean;
   fileName: string;
-  departments: { code: string; name: string }[];
+  departments: { code: string; name: string; is_locked: boolean }[];
   saving: boolean;
   onUpdate: (key: string, patch: Partial<ReviewRow>) => void;
   onCommit: () => void;
@@ -361,7 +366,7 @@ function Review({
         <StatCard label="Students found" value={included.length} hint={fileName} />
         <StatCard label="Ready" value={included.length - withIssues.length} tone="success" />
         <StatCard label="Need a look" value={attention.length} tone={attention.length ? "warning" : "default"} hint="Warnings or errors" />
-        <StatCard label="Skipped" value={skipped.length} hint="Empty seats & duplicates" />
+        <StatCard label="Skipped" value={skipped.length} hint="Empty seats, duplicates, locked depts" />
       </div>
 
       {usedOcr && (
