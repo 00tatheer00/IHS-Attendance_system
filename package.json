@@ -12,7 +12,8 @@
     "test:ocr": "tsx scripts/test-ocr.mts",
     "icons": "node scripts/make-icons.mjs",
     "db:migrate": "node scripts/migrate.mjs",
-    "test:card": "tsx scripts/test-card.mts"
+    "test:card": "tsx scripts/test-card.mts",
+    "og": "node scripts/make-og.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",

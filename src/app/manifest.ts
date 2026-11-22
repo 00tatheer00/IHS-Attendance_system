@@ -4,7 +4,7 @@ import { INSTITUTE } from "@/config/institute";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: `${INSTITUTE.shortName} Attendance`,
+    name: "IHS Attendance System by Tatheer",
     short_name: `${INSTITUTE.shortName} Attendance`,
     description: `Attendance and student portal for the ${INSTITUTE.name}.`,
     start_url: "/",

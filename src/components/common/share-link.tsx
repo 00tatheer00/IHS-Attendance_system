@@ -28,7 +28,7 @@ export function ShareLink() {
           {copied ? <CheckIcon /> : <CopyIcon />} {copied ? "Copied" : "Copy"}
         </Button>
         {"share" in navigator && (
-          <Button variant="outline" onClick={() => navigator.share({ title: "IHS Attendance", text: "Check your attendance and download your ID card:", url }).catch(() => {})}>
+          <Button variant="outline" onClick={() => navigator.share({ title: "IHS Attendance System by Tatheer", text: "📊 Check your IHS attendance & download your ID card (no login):", url }).catch(() => {})}>
             <Share2Icon /> Share
           </Button>
         )}
