@@ -1,4 +1,5 @@
 "use server";
+import { invalidatePublic } from "@/lib/public";
 import { randomBytes } from "node:crypto";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
@@ -44,6 +45,7 @@ export async function updateStudent(id: string, _: ActionState, fd: FormData): P
     .eq("id", id);
   if (error) return { error: error.code === "23514" ? "Check the CNIC format." : error.message };
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return { ok: "Saved." };
 }
 
@@ -54,6 +56,7 @@ export async function setStudentPhoto(id: string, path: string | null) {
   if (error) return { error: error.message };
   if (prev?.photo_path && prev.photo_path !== path) await supabase.storage.from("student-photos").remove([prev.photo_path]);
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return {};
 }
 
@@ -63,6 +66,7 @@ export async function regenerateQr(id: string) {
   const { error } = await supabase.from("students").update({ qr_token: randomBytes(8).toString("hex") }).eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return {};
 }
 
@@ -109,6 +113,7 @@ export async function createPortalAccounts(studentIds?: string[]): Promise<Accou
     else result.created++;
   }
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return result;
 }
 
@@ -147,6 +152,7 @@ export async function deleteStudent(id: string): Promise<{ error?: string }> {
   if (error) return { error: error.message };
   await cleanupStudentFiles([s]);
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return {};
 }
 
@@ -177,5 +183,6 @@ export async function deleteClass(classId: string): Promise<{ error?: string; st
 
   await cleanupStudentFiles(students);
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return { students: students.length };
 }

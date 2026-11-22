@@ -3,6 +3,9 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ServiceWorker } from "@/components/pwa/service-worker";
+import { RouteProgress } from "@/components/layout/route-progress";
+import { NetworkStatus } from "@/components/layout/network-status";
+import { Suspense } from "react";
 import { INSTITUTE } from "@/config/institute";
 import "./globals.css";
 
@@ -28,8 +31,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable} h-full antialiased`}>
       <body className="min-h-full bg-background">
+        <Suspense fallback={null}>
+          <RouteProgress />
+        </Suspense>
         <TooltipProvider>{children}</TooltipProvider>
-        <Toaster theme="light" position="top-center" richColors />
+        <Toaster theme="light" position="top-center" richColors closeButton toastOptions={{ className: "rounded-2xl!" }} />
+        <NetworkStatus />
         <ServiceWorker />
       </body>
     </html>

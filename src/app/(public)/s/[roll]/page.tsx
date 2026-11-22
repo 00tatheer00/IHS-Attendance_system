@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeftIcon, CheckCircle2Icon, TriangleAlertIcon } from "lucide-react";
 import { getPublicStudent } from "@/lib/public";
 import { canMiss, classesNeeded } from "@/lib/portal";
-import { className, pct, todayPK } from "@/lib/format";
+import { pct, todayPK } from "@/lib/format";
 import { MIN_ATTENDANCE_PCT, PUBLIC_PORTAL } from "@/config/institute";
 import type { AttendanceStatus } from "@/lib/types";
 import { StudentAvatar } from "@/components/students/student-avatar";
@@ -14,6 +14,7 @@ import { MonthCalendar } from "@/components/attendance/month-calendar";
 import { percentTone } from "@/components/attendance/status-badge";
 import { IdCardViewer } from "@/components/id-card/id-card-viewer";
 import { AutoRefresh } from "./auto-refresh";
+import { deptGradient } from "@/components/common/department-cards";
 import { cn } from "@/lib/utils";
 
 export async function generateMetadata({ params }: { params: Promise<{ roll: string }> }): Promise<Metadata> {
@@ -38,21 +39,23 @@ export default async function PublicStudentPage({ params }: { params: Promise<{ 
   return (
     <div className="mx-auto max-w-lg space-y-5">
       <AutoRefresh />
-      <Link href="/" className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeftIcon className="size-4" /> Search
-      </Link>
-
-      <div className="flex items-center gap-4">
-        <StudentAvatar photoUrl={student.photoUrl} gender={student.gender} name={student.full_name} className="size-16 rounded-2xl" />
-        <div className="min-w-0">
-          <h1 className="truncate text-xl font-semibold tracking-tight">{student.full_name}</h1>
-          <p className="truncate text-sm text-muted-foreground">
-            <span className="font-mono font-medium text-foreground">{student.roll_no}</span> · {className(student.class)}
-          </p>
+      <section className={`relative overflow-hidden rounded-3xl bg-linear-to-br ${deptGradient(student.class.department.code)} px-5 pt-5 pb-16 text-white shadow-xl shadow-black/10`}>
+        <div className="pointer-events-none absolute -top-14 -right-10 size-48 rounded-full bg-white/15 blur-2xl" />
+        <Link href={`/d/${student.class.department.code}`} className="relative inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-xs font-medium backdrop-blur hover:bg-white/25">
+          <ArrowLeftIcon className="size-3.5" /> BS {student.class.department.name}
+        </Link>
+        <div className="relative mt-4 flex items-center gap-4">
+          <StudentAvatar photoUrl={student.photoUrl} gender={student.gender} name={student.full_name} className="size-16 rounded-2xl ring-4 ring-white/30" />
+          <div className="min-w-0">
+            <h1 className="truncate text-xl font-bold tracking-tight">{student.full_name}</h1>
+            <p className="truncate text-sm text-white/85">
+              <span className="font-mono font-semibold">{student.roll_no}</span> · {student.class.batch.name}
+            </p>
+          </div>
         </div>
-      </div>
+      </section>
 
-      <section className="flex flex-col items-center rounded-3xl border bg-card px-5 pt-6 pb-5">
+      <section className="relative -mt-14 mx-2 flex flex-col items-center rounded-3xl border bg-card px-5 pt-6 pb-5 shadow-xl shadow-violet-900/5">
         <ProgressRing value={att.overall} min={MIN_ATTENDANCE_PCT} />
         <div
           className={cn(
@@ -75,9 +78,9 @@ export default async function PublicStudentPage({ params }: { params: Promise<{ 
           )}
         </div>
         <div className="mt-5 grid w-full grid-cols-3 divide-x rounded-2xl bg-muted/60 py-3 text-center">
-          <Tile label="Classes held" value={att.total.total} />
-          <Tile label="Attended" value={att.total.present} className="text-success" />
-          <Tile label="Absent" value={att.total.absent} className="text-destructive" />
+          <Tile label="Classes held" value={att.total.total} className="text-indigo-600" />
+          <Tile label="Attended" value={att.total.present} className="text-emerald-600" />
+          <Tile label="Absent" value={att.total.absent} className="text-rose-600" />
         </div>
         {att.total.excused > 0 && <p className="mt-2 text-xs text-muted-foreground">{att.total.excused} on approved leave (not counted)</p>}
       </section>

@@ -280,7 +280,7 @@ export function Scanner({
         muted
         className={cn("absolute inset-0 size-full object-cover", facing === "user" && "-scale-x-100")}
       />
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black/70 via-transparent to-black/80" />
+      <div className="pointer-events-none absolute inset-0 bg-linear-to-b from-black/70 via-transparent to-black/80" />
 
       {/* top bar */}
       <header className="relative z-10 flex items-center gap-3 px-4 pt-[max(env(safe-area-inset-top),1rem)] pb-3">

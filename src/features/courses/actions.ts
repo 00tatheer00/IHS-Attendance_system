@@ -1,4 +1,5 @@
 "use server";
+import { invalidatePublic } from "@/lib/public";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertStaff } from "@/lib/auth";
@@ -27,6 +28,7 @@ export async function createOfferings(input: z.infer<typeof schema>): Promise<{ 
     .select("id");
   if (error) return { error: error.message };
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return { created: data?.length ?? 0 };
 }
 
@@ -35,5 +37,6 @@ export async function setOfferingActive(id: string, active: boolean) {
   const { error } = await supabase.from("course_offerings").update({ is_active: active }).eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return {};
 }

@@ -40,8 +40,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    // Everything except static assets, the service worker and the manifest.
-    "/((?!_next/static|_next/image|favicon.ico|sw.js|manifest.webmanifest|wasm/|icons/|.*\\.(?:png|jpg|jpeg|svg|webp|mjs)$).*)",
-  ],
+  // Only routes that need a signed-in user. Public pages (/, /d/*, /s/*) skip
+  // this entirely, so they never wait on Supabase Auth.
+  matcher: ["/dashboard/:path*", "/scan/:path*", "/portal/:path*", "/login", "/setup", "/api/:path*"],
 };

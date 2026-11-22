@@ -83,13 +83,13 @@ export default async function SessionsPage({ searchParams }: { searchParams: Pro
       {sessions.length === 0 ? (
         <EmptyState icon={<CalendarCheckIcon />} title="No classes yet" description="Classes you start will appear here." />
       ) : (
-        <ul className="divide-y overflow-hidden rounded-xl border bg-card">
+        <ul className="divide-y overflow-hidden rounded-2xl border bg-card shadow-sm">
           {sessions.map((s) => {
             const counted = s.enrolled - s.excused;
             const rate = s.status === "closed" && counted > 0 ? Math.round((100 * s.present) / counted) : null;
             return (
               <li key={s.id}>
-                <Link href={`/dashboard/sessions/${s.id}`} className="flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
+                <Link href={`/dashboard/sessions/${s.id}`} className="pressable flex items-center gap-4 px-4 py-3 hover:bg-muted/50">
                   <div className="w-20 shrink-0">
                     <div className="text-sm font-medium">{fmtDay(s.session_date)}</div>
                     <div className="text-xs text-muted-foreground">{fmtTime(s.started_at)}</div>

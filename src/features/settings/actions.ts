@@ -1,4 +1,5 @@
 "use server";
+import { invalidatePublic } from "@/lib/public";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertStaff } from "@/lib/auth";
@@ -26,6 +27,7 @@ async function insert(table: string, schema: z.ZodTypeAny, formData: FormData, l
   const { error } = await supabase.from(table).insert(parsed.data as Record<string, unknown>);
   if (error) return { error: error.code === "23505" ? `That ${label} already exists.` : error.message };
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return { ok: `${label[0]!.toUpperCase()}${label.slice(1)} added.` };
 }
 

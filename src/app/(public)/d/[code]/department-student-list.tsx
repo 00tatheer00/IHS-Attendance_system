@@ -30,11 +30,11 @@ export function DepartmentStudentList({ students }: { students: S[] }) {
     <div className="space-y-3">
       <SearchBox onChange={setQ} placeholder="Find your name or roll number" />
       {list.length ? (
-        <ul className="divide-y overflow-hidden rounded-2xl border bg-card">
+        <ul className="divide-y overflow-hidden rounded-3xl border bg-card shadow-sm">
           {list.map((s) => (
             <li key={s.id}>
-              <Link href={`/s/${encodeURIComponent(s.roll_no)}`} className="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/50 active:bg-muted">
-                <StudentAvatar gender={s.gender} name={s.full_name} className="size-10" />
+              <Link href={`/s/${encodeURIComponent(s.roll_no)}`} className="pressable flex items-center gap-3 px-4 py-3 hover:bg-muted/50 active:bg-muted">
+                <StudentAvatar gender={s.gender} name={s.full_name} className="size-11" />
                 <div className="min-w-0 flex-1">
                   <div className="truncate font-medium">{s.full_name}</div>
                   <div className="truncate text-xs text-muted-foreground">

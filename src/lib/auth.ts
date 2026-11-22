@@ -4,11 +4,30 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Profile } from "@/lib/types";
 
-/** Current user + profile, memoised per request. */
+/** `sub` (user id) from a JWT without a network call. */
+function jwtSubject(token: string): string | null {
+  try {
+    const payload = JSON.parse(Buffer.from(token.split(".")[1]!, "base64url").toString("utf8"));
+    return typeof payload.sub === "string" ? payload.sub : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Current user + profile, memoised per request.
+ *
+ * Fast path: the user id is read from the session cookie (no round trip to
+ * Supabase Auth). This is safe because the very next query — the profile —
+ * is sent with that same access token, and the database verifies the token
+ * signature and enforces RLS (`id = auth.uid()`); a forged or expired token
+ * returns no profile, so the viewer is treated as signed out. The proxy
+ * refreshes expiring tokens before pages render.
+ */
 export const getViewer = cache(async () => {
   const supabase = await createClient();
-  const { data } = await supabase.auth.getClaims();
-  const userId = data?.claims?.sub;
+  const { data } = await supabase.auth.getSession();
+  const userId = data.session ? jwtSubject(data.session.access_token) : null;
   if (!userId) return null;
   const { data: profile } = await supabase
     .from("profiles")

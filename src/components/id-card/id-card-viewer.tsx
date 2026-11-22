@@ -45,6 +45,7 @@ export function IdCardViewer({ student, className }: { student: CardStudent; cla
   async function downloadPdf() {
     if (!pdfRef.current) return;
     downloadBlob(new Blob([pdfRef.current], { type: "application/pdf" }), `${cardFileName(student)}.pdf`);
+    toast.success("ID card downloaded", { description: "Page 1 is the front, page 2 the back." });
   }
 
   async function downloadPng(page: 1 | 2) {
@@ -55,6 +56,7 @@ export function IdCardViewer({ student, className }: { student: CardStudent; cla
       await renderPdfPage(pdfRef.current, page, canvas, 600 / 72); // 600 dpi
       const blob = await new Promise<Blob>((res) => canvas.toBlob((b) => res(b!), "image/png"));
       downloadBlob(blob, `${cardFileName(student)}-${page === 1 ? "front" : "back"}.png`);
+      toast.success(`${page === 1 ? "Front" : "Back"} image downloaded`);
     } catch {
       toast.error("Could not create the image.");
     } finally {

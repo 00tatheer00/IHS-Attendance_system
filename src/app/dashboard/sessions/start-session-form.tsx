@@ -29,10 +29,10 @@ export function StartSessionForm({ offerings, defaultId }: { offerings: { id: st
       onSubmit={() => {
         try { localStorage.setItem(LAST_KEY, course); } catch {}
       }}
-      className="rounded-2xl border bg-card p-5 shadow-sm"
+      className="rounded-3xl border bg-card p-5 shadow-sm"
     >
       <div className="flex items-center gap-3">
-        <div className="flex size-10 items-center justify-center rounded-xl bg-brand text-primary-foreground">
+        <div className="flex size-11 items-center justify-center rounded-2xl bg-linear-to-br from-emerald-500 via-teal-500 to-cyan-500 text-white shadow-lg shadow-emerald-500/25">
           <ScanLineIcon className="size-5" />
         </div>
         <div>
@@ -57,7 +57,7 @@ export function StartSessionForm({ offerings, defaultId }: { offerings: { id: st
           </Label>
           <Input id="topic" name="topic" placeholder="e.g. Introduction to MS Excel" />
         </div>
-        <Button type="submit" className="h-10 px-5" disabled={pending || !course}>
+        <Button type="submit" className="h-11 bg-linear-to-r from-emerald-500 to-teal-600 px-5 shadow-emerald-600/25 hover:from-emerald-600 hover:to-teal-700" disabled={pending || !course}>
           {pending ? <Loader2Icon className="animate-spin" /> : <ScanLineIcon />}
           Start scanning
         </Button>

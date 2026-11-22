@@ -12,11 +12,13 @@ export function SearchBox({
   basePath,
   onChange,
   placeholder = "Your name or roll number",
+  autoFocus,
 }: {
   defaultValue?: string;
   basePath?: string;
   onChange?: (v: string) => void;
   placeholder?: string;
+  autoFocus?: boolean;
 }) {
   const router = useRouter();
   const [value, setValue] = useState(defaultValue);
@@ -44,7 +46,7 @@ export function SearchBox({
 
   return (
     <div className="relative">
-      <SearchIcon className="absolute top-1/2 left-4 size-5 -translate-y-1/2 text-muted-foreground" />
+      <SearchIcon className="absolute top-1/2 left-4 size-5 -translate-y-1/2 text-violet-600" />
       <input
         type="search"
         value={value}
@@ -53,7 +55,8 @@ export function SearchBox({
         autoComplete="off"
         autoCapitalize="words"
         enterKeyHint="search"
-        className="h-14 w-full rounded-2xl border bg-card pr-12 pl-12 text-base shadow-sm outline-none transition focus:border-ring focus:ring-4 focus:ring-ring/15 [&::-webkit-search-cancel-button]:hidden"
+        autoFocus={autoFocus}
+        className="h-14 w-full rounded-2xl border bg-card pr-12 pl-12 text-base shadow-md shadow-violet-500/5 outline-none transition focus:border-ring focus:ring-4 focus:ring-ring/15 [&::-webkit-search-cancel-button]:hidden"
       />
       <div className="absolute top-1/2 right-3 -translate-y-1/2">
         {pending ? (

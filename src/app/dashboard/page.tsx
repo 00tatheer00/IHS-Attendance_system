@@ -67,12 +67,21 @@ export default async function DashboardHome() {
 
   return (
     <>
-      <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight">{greeting()}, {firstName}</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          {held.length ? `${held.length} class${held.length === 1 ? "" : "es"} this week.` : "No classes yet this week."}
-        </p>
-      </div>
+      <section className="relative mb-5 overflow-hidden rounded-3xl bg-linear-to-br from-indigo-600 via-violet-600 to-fuchsia-600 p-5 text-white shadow-xl shadow-violet-600/20">
+        <div className="pointer-events-none absolute -top-16 -right-10 size-52 rounded-full bg-white/10 blur-2xl" />
+        <div className="pointer-events-none absolute -bottom-20 left-10 size-52 rounded-full bg-amber-300/20 blur-2xl" />
+        <div className="relative">
+          <p className="text-sm text-white/75">{greeting()} 👋</p>
+          <h1 className="text-2xl font-bold tracking-tight">{firstName}</h1>
+          <div className="mt-4 flex flex-wrap gap-2 text-xs font-medium">
+            <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">{totalStudents} students</span>
+            <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">{offerings.length} courses</span>
+            <span className="rounded-full bg-white/15 px-3 py-1 backdrop-blur">
+              {held.length ? `${held.length} class${held.length === 1 ? "" : "es"} this week` : "No classes yet this week"}
+            </span>
+          </div>
+        </div>
+      </section>
 
       {open.map((s) => (
         <Link key={s.id} href={`/scan/${s.id}`} className="mb-4 flex items-center gap-3 rounded-xl border border-success/40 bg-success/8 p-4 hover:bg-success/12">
@@ -91,13 +100,14 @@ export default async function DashboardHome() {
       <StartSessionForm offerings={offerings.map((o) => ({ id: o.id, label: `${o.subject.code} — ${shortClassName(o.class)}` }))} />
 
       <div className="my-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Students" value={totalStudents} icon={<UsersIcon />} />
-        <StatCard label="Courses" value={offerings.length} icon={<BookOpenIcon />} />
-        <StatCard label="Classes this week" value={held.length} icon={<CalendarCheckIcon />} />
+        <StatCard label="Students" value={totalStudents} icon={<UsersIcon />} tone="info" />
+        <StatCard label="Courses" value={offerings.length} icon={<BookOpenIcon />} tone="brand" />
+        <StatCard label="Classes this week" value={held.length} icon={<CalendarCheckIcon />} tone="warning" />
         <StatCard
           label="Attendance this week"
           value={<span className={percentTone(weekRate, MIN_ATTENDANCE_PCT)}>{pct(weekRate)}</span>}
           icon={<CalendarCheckIcon />}
+          tone="success"
         />
       </div>
 

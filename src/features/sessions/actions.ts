@@ -1,4 +1,5 @@
 "use server";
+import { invalidatePublic } from "@/lib/public";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
@@ -27,6 +28,7 @@ export async function startSession(_: unknown, fd: FormData): Promise<{ error?: 
     .single();
   if (error) return { error: error.message };
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   redirect(`/scan/${data.id}`);
 }
 
@@ -35,6 +37,7 @@ export async function closeSession(sessionId: string): Promise<{ error?: string;
   const { data, error } = await supabase.rpc("close_session", { p_session: sessionId });
   if (error) return { error: error.message };
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return { absent: data as number };
 }
 
@@ -43,6 +46,7 @@ export async function reopenSession(sessionId: string): Promise<{ error?: string
   const { error } = await supabase.rpc("reopen_session", { p_session: sessionId });
   if (error) return { error: error.message };
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return {};
 }
 
@@ -51,6 +55,7 @@ export async function cancelSession(sessionId: string): Promise<{ error?: string
   const { error } = await supabase.from("sessions").update({ status: "cancelled", closed_at: new Date().toISOString() }).eq("id", sessionId);
   if (error) return { error: error.message };
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return {};
 }
 
@@ -59,6 +64,7 @@ export async function deleteSession(sessionId: string): Promise<{ error?: string
   const { error } = await supabase.from("sessions").delete().eq("id", sessionId);
   if (error) return { error: error.message };
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   redirect("/dashboard/sessions");
 }
 
@@ -81,5 +87,6 @@ export async function setAttendance(input: z.infer<typeof statusSchema>): Promis
   });
   if (error) return { error: error.message };
   revalidatePath(`/dashboard/sessions/${p.data.session}`);
+  invalidatePublic("attendance");
   return {};
 }

@@ -1,4 +1,5 @@
 import "server-only";
+import { revalidateTag, unstable_cache } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { CLASS_SELECT, type ClassRow, type Gender } from "@/lib/types";
 import { getStudentAttendance } from "@/lib/student-attendance";
@@ -24,13 +25,13 @@ const PUBLIC_SELECT = `id, roll_no, full_name, gender, class:classes(${CLASS_SEL
 /** Keep only characters that can appear in names/roll numbers (also makes the filter injection-safe). */
 const clean = (q: string) => q.replace(/[^\p{L}\p{N}\s-]/gu, " ").replace(/\s+/g, " ").trim().slice(0, 60);
 
-export async function getPublicDepartments() {
+async function getPublicDepartmentsRaw() {
   const db = createAdminClient();
   const { data } = await db.from("departments").select("id, code, name").order("code");
   return (data ?? []) as { id: string; code: string; name: string }[];
 }
 
-export async function searchStudents(query: string, deptCode?: string): Promise<PublicStudent[]> {
+async function searchStudentsRaw(query: string, deptCode?: string): Promise<PublicStudent[]> {
   const q = clean(query);
   if (q.length < 2 && !deptCode) return [];
   const db = createAdminClient();
@@ -55,7 +56,7 @@ export async function searchStudents(query: string, deptCode?: string): Promise<
   return ((data ?? []) as unknown as PublicStudent[]).sort((a, b) => a.roll_no.localeCompare(b.roll_no, undefined, { numeric: true }));
 }
 
-export async function getPublicStudent(roll: string) {
+async function getPublicStudentRaw(roll: string) {
   const rollNo = decodeURIComponent(roll).toUpperCase().replace(/[^A-Z0-9-]/g, "");
   const db = createAdminClient();
   const { data } = await db
@@ -85,7 +86,7 @@ export async function getPublicStudent(roll: string) {
 }
 
 /** Departments with their number of active students (for the department cards). */
-export async function getPublicDepartmentCards() {
+async function getPublicDepartmentCardsRaw() {
   const db = createAdminClient();
   const [{ data: depts }, { data: classes }, { data: sizes }] = await Promise.all([
     db.from("departments").select("id, code, name").order("name"),
@@ -98,8 +99,43 @@ export async function getPublicDepartmentCards() {
   return (depts ?? []).map((d) => ({ id: d.id as string, code: d.code as string, name: d.name as string, count: count.get(d.id) ?? 0 }));
 }
 
-export async function getPublicDepartment(code: string) {
+async function getPublicDepartmentRaw(code: string) {
   const db = createAdminClient();
   const { data } = await db.from("departments").select("id, code, name").eq("code", code.toUpperCase()).maybeSingle();
   return data as { id: string; code: string; name: string } | null;
 }
+
+// ---------- Cached entry points -----------------------------------------
+// Public pages are hit by many students at once (e.g. right after class), so
+// results are cached briefly and invalidated immediately on any change.
+
+export const PUBLIC_TAGS = { students: "public-students", attendance: "public-attendance" } as const;
+
+/** Call after any change to students/classes/attendance so public pages update at once. */
+export function invalidatePublic(...tags: (keyof typeof PUBLIC_TAGS)[]) {
+  for (const t of tags.length ? tags : (Object.keys(PUBLIC_TAGS) as (keyof typeof PUBLIC_TAGS)[])) {
+    revalidateTag(PUBLIC_TAGS[t], { expire: 0 });
+  }
+}
+
+export const getPublicDepartments = unstable_cache(getPublicDepartmentsRaw, ["public-departments"], {
+  revalidate: 600,
+  tags: [PUBLIC_TAGS.students],
+});
+export const getPublicDepartment = unstable_cache(getPublicDepartmentRaw, ["public-department"], {
+  revalidate: 600,
+  tags: [PUBLIC_TAGS.students],
+});
+export const getPublicDepartmentCards = unstable_cache(getPublicDepartmentCardsRaw, ["public-department-cards"], {
+  revalidate: 300,
+  tags: [PUBLIC_TAGS.students],
+});
+export const searchStudents = unstable_cache(searchStudentsRaw, ["public-search"], {
+  revalidate: 300,
+  tags: [PUBLIC_TAGS.students],
+});
+/** Attendance changes during class (scans), so this one is kept only briefly. */
+export const getPublicStudent = unstable_cache(getPublicStudentRaw, ["public-student"], {
+  revalidate: 15,
+  tags: [PUBLIC_TAGS.students, PUBLIC_TAGS.attendance],
+});

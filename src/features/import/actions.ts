@@ -1,4 +1,5 @@
 "use server";
+import { invalidatePublic } from "@/lib/public";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertStaff } from "@/lib/auth";
@@ -90,5 +91,6 @@ export async function commitImport(input: z.infer<typeof commitSchema>): Promise
   }
 
   revalidatePath("/dashboard", "layout");
+  invalidatePublic();
   return { created: payload.length - ex.size, updated: ex.size };
 }
