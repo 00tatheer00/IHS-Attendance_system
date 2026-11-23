@@ -212,7 +212,8 @@ export type NewStudentState = { error?: string; ok?: string; id?: string } | und
 
 /** Adds one student. Department comes from the roll prefix; section from the roll number (1–50 → A) unless chosen. */
 export async function createStudent(_: NewStudentState, fd: FormData): Promise<NewStudentState> {
-  const { supabase } = await assertStaff();
+  const { supabase, profile } = await assertStaff();
+  const isAdmin = profile.role === "admin";
   const parsed = newStudentSchema.safeParse(Object.fromEntries(fd));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message };
   const v = parsed.data;
@@ -224,10 +225,21 @@ export async function createStudent(_: NewStudentState, fd: FormData): Promise<N
   if (dept.is_locked) return { error: `${dept.name} is locked. Unlock it in Settings first.` };
 
   const section = !dept.has_sections ? null : v.section === "auto" ? sectionForRoll(roll) : v.section;
+
+  // Teachers may only add students to classes they teach
+  if (!isAdmin) {
+    const { data: mine } = await supabase
+      .from("course_offerings")
+      .select("class:classes!inner(department_id, batch_id, section)")
+      .eq("class.department_id", dept.id)
+      .eq("class.batch_id", v.batch_id);
+    const teachesIt = ((mine ?? []) as unknown as { class: { section: string | null } }[]).some((o) => (o.class.section ?? null) === section);
+    if (!teachesIt) return { error: `You can only add students to your own classes. ${dept.name}${section ? ` Section ${section}` : ""} isn’t one of them.` };
+  }
   const placement = await ensureClasses(supabase, v.batch_id, [{ departmentId: dept.id, section }]);
   const classId = placement.classIdOf(dept.id, section);
   if (placement.error || !classId) return { error: placement.error ?? "Could not find the class." };
-  await mirrorCourses(supabase, v.batch_id, [dept.id]);
+  if (isAdmin) await mirrorCourses(supabase, v.batch_id, [dept.id]);
 
   const { data, error } = await supabase
     .from("students")

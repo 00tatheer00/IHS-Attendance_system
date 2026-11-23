@@ -25,7 +25,14 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
     supabase.from("batches").select("id, name, session_label").order("created_at", { ascending: false }),
     supabase.from("departments").select("code, name, is_locked, has_sections").order("code"),
   ]);
-  const addStudent = <AddStudentDialog batches={batches ?? []} departments={departments ?? []} />;
+  // Teachers only see (and can add to) the departments they teach
+  const myDeptCodes = new Set(classes.map((c) => c.department.code));
+  const addStudent = (
+    <AddStudentDialog
+      batches={batches ?? []}
+      departments={(departments ?? []).filter((d) => profile.role === "admin" || myDeptCodes.has(d.code))}
+    />
+  );
 
   if (!classes.length) {
     return (

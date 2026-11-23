@@ -60,13 +60,17 @@ export function AddStudentDialog({ batches, departments }: Props) {
               name="roll_no"
               value={roll}
               onChange={(e) => setRoll(e.target.value)}
-              placeholder="DEN-F26-104"
+              placeholder={`${departments.find((d) => !d.is_locked)?.code ?? "DEN"}-F26-104`}
               autoCapitalize="characters"
               className="h-11 font-mono uppercase placeholder:font-sans placeholder:normal-case"
               required
             />
             <div className="min-h-6 text-xs">
-              {clean && !dept && code && <span className="text-destructive">No department with code “{code}”.</span>}
+              {clean && !dept && code && (
+                <span className="text-destructive">
+                  “{code}” isn’t one of your departments{departments.length ? ` (${departments.map((d) => d.code).join(", ")})` : ""}.
+                </span>
+              )}
               {dept?.is_locked && (
                 <span className="inline-flex items-center gap-1 text-destructive">
                   <LockIcon className="size-3" /> {dept.name} is locked — unlock it in Settings first.
