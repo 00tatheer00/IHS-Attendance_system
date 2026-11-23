@@ -3,6 +3,7 @@ import { invalidatePublic } from "@/lib/public";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertStaff } from "@/lib/auth";
+import { getMyDepartmentIds } from "@/lib/queries";
 
 const schema = z.object({
   subject_id: z.string().uuid("Choose a subject"),
@@ -25,6 +26,13 @@ export async function createOfferings(input: z.infer<typeof schema>): Promise<{ 
   }
 
   const { subject_id, term_label, class_ids } = parsed.data;
+  if (profile.role !== "admin") {
+    const mine = await getMyDepartmentIds(supabase, false);
+    const { data: cls } = await supabase.from("classes").select("id, department_id").in("id", class_ids);
+    if (!cls || cls.length !== class_ids.length || cls.some((c) => !mine?.has(c.department_id))) {
+      return { error: "You can only add courses to classes in your own department." };
+    }
+  }
   const { data, error } = await supabase
     .from("course_offerings")
     .upsert(

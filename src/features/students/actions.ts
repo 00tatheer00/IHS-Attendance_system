@@ -164,8 +164,15 @@ export async function deleteStudent(id: string): Promise<{ error?: string }> {
  */
 export async function deleteClass(classId: string): Promise<{ error?: string; students?: number }> {
   const { supabase, profile } = await assertStaff();
-  // Admin only: a teacher can't see other teachers' courses, so a partial delete would be possible.
-  if (profile.role !== "admin") return { error: "Only an administrator can delete a whole class." };
+  if (profile.role !== "admin") {
+    // A teacher may delete a class only if every course in it is theirs (no one else's data is touched)
+    const admin = createAdminClient();
+    const [{ count: all }, { count: mine }] = await Promise.all([
+      admin.from("course_offerings").select("id", { count: "exact", head: true }).eq("class_id", classId),
+      supabase.from("course_offerings").select("id", { count: "exact", head: true }).eq("class_id", classId),
+    ]);
+    if (!mine || mine !== all) return { error: "You can only delete classes you teach (and no other teacher teaches)." };
+  }
 
   const students: { user_id: string | null; photo_path: string | null }[] = [];
   for (let from = 0; ; from += 1000) {

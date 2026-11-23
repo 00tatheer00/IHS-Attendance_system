@@ -112,7 +112,7 @@ export default async function StudentsPage({ searchParams }: { searchParams: Pro
                 ID cards
               </LinkButton>
             )}
-            {selected && profile.role === "admin" && (
+            {selected && (profile.role === "admin" || myDeptCodes.has(selected.department.code)) && (
               <DeleteClassButton classId={selected.id} label={className(selected)} code={selected.department.code} students={students.length} />
             )}
           </>

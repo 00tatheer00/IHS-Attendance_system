@@ -3,6 +3,7 @@ import { invalidatePublic } from "@/lib/public";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { assertStaff } from "@/lib/auth";
+import { getMyDepartmentIds } from "@/lib/queries";
 
 export type ActionState = { error?: string; ok?: string } | undefined;
 
@@ -44,7 +45,8 @@ export async function addSubject(_: ActionState, fd: FormData) {
 /** Lock/unlock a department (hidden from the public portal, imports and new courses while locked). */
 export async function setDepartmentLock(id: string, locked: boolean): Promise<{ error?: string }> {
   const { supabase, profile } = await assertStaff();
-  if (profile.role !== "admin") return { error: "Only an administrator can lock departments." };
+  const mine = await getMyDepartmentIds(supabase, profile.role === "admin");
+  if (mine && !mine.has(id)) return { error: "You can only lock or unlock your own department." };
   const { error } = await supabase.from("departments").update({ is_locked: locked }).eq("id", id);
   if (error) return { error: error.message };
   revalidatePath("/dashboard", "layout");

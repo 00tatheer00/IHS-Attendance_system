@@ -41,7 +41,8 @@ const commitSchema = z.object({
 export type CommitResult = { created: number; updated: number; error?: string };
 
 export async function commitImport(input: z.infer<typeof commitSchema>): Promise<CommitResult> {
-  const { supabase } = await assertStaff();
+  const { supabase, profile } = await assertStaff();
+  const isAdmin = profile.role === "admin";
   const parsed = commitSchema.safeParse(input);
   if (!parsed.success) return { created: 0, updated: 0, error: "Some rows are invalid. Fix the highlighted rows and try again." };
   const { batchId, rows } = parsed.data;
@@ -57,6 +58,24 @@ export async function commitImport(input: z.infer<typeof commitSchema>): Promise
   if (unknown.length) return { created: 0, updated: 0, error: `Unknown department code(s): ${unknown.join(", ")}` };
   const locked = depts!.filter((d) => d.is_locked && codes.includes(d.code)).map((d) => d.code);
   if (locked.length) return { created: 0, updated: 0, error: `Locked department(s): ${locked.join(", ")}. Unlock in Settings first.` };
+
+  // Teachers: only into classes they already teach
+  if (!isAdmin) {
+    const { data: mineRaw } = await supabase.from("course_offerings").select("class:classes(department_id, batch_id, section)");
+    const mine = new Set(
+      ((mineRaw ?? []) as unknown as { class: { department_id: string; batch_id: string; section: string | null } }[]).map(
+        (o) => `${o.class.department_id}:${o.class.batch_id}:${o.class.section ?? ""}`,
+      ),
+    );
+    const outside = rows.filter((r) => !mine.has(`${deptId.get(r.department_code)}:${batchId}:${sectionOf(r) ?? ""}`));
+    if (outside.length) {
+      return {
+        created: 0,
+        updated: 0,
+        error: `${outside.length} row(s) are outside your classes (e.g. ${outside[0]!.roll_no}). Untick them or ask the admin.`,
+      };
+    }
+  }
 
   // Place each student in their class: sectioned departments split roll 1–50 → A, 51+ → B
   const placement = await ensureClasses(
@@ -97,7 +116,7 @@ export async function commitImport(input: z.infer<typeof commitSchema>): Promise
   }
 
   // A brand-new section gets the same courses as its department's other section
-  await mirrorCourses(supabase, batchId, codes.map((c) => deptId.get(c)!));
+  if (isAdmin) await mirrorCourses(supabase, batchId, codes.map((c) => deptId.get(c)!));
 
   revalidatePath("/dashboard", "layout");
   invalidatePublic();

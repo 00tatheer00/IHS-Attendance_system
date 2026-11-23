@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   batches: { id: string; name: string; session_label: string | null }[];
-  departments: { code: string; name: string; is_locked: boolean }[];
+  departments: { code: string; name: string; is_locked: boolean; mine: boolean }[];
   existing: { roll_no: string; full_name: string; father_name: string | null }[];
 }
 
@@ -76,6 +76,7 @@ export function ImportWizard({ batches, departments, existing }: Props) {
       const normalized = normalizeRows(raw, {
         ...validateOpts,
         lockedDepartments: departments.filter((d) => d.is_locked).map((d) => d.code),
+        otherDepartments: departments.filter((d) => !d.mine).map((d) => d.code),
         fixCapitalisation: fixCaps,
         ocr,
       });
@@ -330,7 +331,7 @@ function Review({
   rows: ReviewRow[];
   usedOcr: boolean;
   fileName: string;
-  departments: { code: string; name: string; is_locked: boolean }[];
+  departments: { code: string; name: string; is_locked: boolean; mine: boolean }[];
   saving: boolean;
   onUpdate: (key: string, patch: Partial<ReviewRow>) => void;
   onCommit: () => void;
@@ -411,7 +412,7 @@ function Review({
         <div className="flex gap-2">
           <NativeSelect value={dept} onChange={(e) => setDept(e.target.value)} className="w-44">
             <option value="">All departments</option>
-            {departments.map((d) => (
+            {departments.filter((d) => d.mine).map((d) => (
               <option key={d.code} value={d.code}>
                 {d.code} · {d.name} ({counts[d.code]?.length ?? 0})
               </option>

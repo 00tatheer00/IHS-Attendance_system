@@ -83,6 +83,8 @@ export interface NormalizeOptions {
   knownDepartments: string[];
   /** Department codes that are locked: their rows are skipped. */
   lockedDepartments?: string[];
+  /** For teachers: departments that exist but aren't theirs — rows are skipped. */
+  otherDepartments?: string[];
   /** roll_no → existing student (for "will update" and duplicate detection) */
   existing: Map<string, { full_name: string; father_name: string | null }>;
   fixCapitalisation: boolean;
@@ -134,6 +136,9 @@ export function normalizeRows(raw: RawRow[], opts: NormalizeOptions): ReviewRow[
     else if (opts.lockedDepartments?.includes(row.department_code)) {
       row.include = false;
       row.warnings.push(`Locked department ${row.department_code} (skipped)`);
+    } else if (opts.otherDepartments?.includes(row.department_code)) {
+      row.include = false;
+      row.warnings.push(`Not your department ${row.department_code} (skipped)`);
     }
     rows.push(row);
 
@@ -162,7 +167,7 @@ export function validateRows(rows: ReviewRow[], opts: Pick<NormalizeOptions, "kn
 
   for (const r of rows) {
     r.issues = [];
-    r.warnings = r.warnings.filter((w) => w.startsWith("Empty seat") || w.startsWith("Duplicate roll") || w.startsWith("Locked department"));
+    r.warnings = r.warnings.filter((w) => w.startsWith("Empty seat") || w.startsWith("Duplicate roll") || w.startsWith("Locked department") || w.startsWith("Not your department"));
     if (!r.include) continue;
 
     if (!r.full_name) r.issues.push("Name is required");

@@ -77,3 +77,10 @@ export async function signPhotos(supabase: SupabaseClient, paths: (string | null
   const { data } = await supabase.storage.from("student-photos").createSignedUrls(list, expiresIn);
   return new Map((data ?? []).filter((d) => d.signedUrl).map((d) => [d.path!, d.signedUrl]));
 }
+
+/** Department ids a teacher works in (via their courses). null = admin (all departments). */
+export async function getMyDepartmentIds(supabase: SupabaseClient, isAdmin: boolean): Promise<Set<string> | null> {
+  if (isAdmin) return null;
+  const { data } = await supabase.from("course_offerings").select("class:classes(department_id)");
+  return new Set(((data ?? []) as unknown as { class: { department_id: string } | null }[]).map((o) => o.class?.department_id).filter((d): d is string => !!d));
+}

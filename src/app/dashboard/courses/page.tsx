@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { BookOpenIcon } from "lucide-react";
 import { requireStaff } from "@/lib/auth";
-import { getClasses, getClassSizes, getOfferingSummaries, getOfferings } from "@/lib/queries";
+import { getClasses, getClassSizes, getMyDepartmentIds, getOfferingSummaries, getOfferings } from "@/lib/queries";
 import { className } from "@/lib/format";
 import { PageHeader } from "@/components/common/page-header";
 import { EmptyState } from "@/components/common/empty-state";
@@ -21,6 +21,7 @@ export default async function CoursesPage() {
     getClassSizes(supabase),
   ]);
   const isAdmin = profile.role === "admin";
+  const myDepts = await getMyDepartmentIds(supabase, isAdmin);
   const { data: teachers } = isAdmin
     ? await supabase.from("teachers").select("id, full_name, user_id").not("user_id", "is", null).order("full_name")
     : { data: null };
@@ -36,7 +37,7 @@ export default async function CoursesPage() {
           <NewCourses
             subjects={subjects ?? []}
             classes={classes
-              .filter((c) => !c.department.is_locked)
+              .filter((c) => !c.department.is_locked && (!myDepts || myDepts.has(c.department.id)))
               .map((c) => ({ id: c.id, label: className(c), batch: c.batch.name, size: classSizes.get(c.id) ?? 0 }))}
             existing={offerings.map((o) => ({ subject_id: o.subject.id, class_id: o.class.id, term_label: o.term_label }))}
             teachers={isAdmin ? teacherList : undefined}

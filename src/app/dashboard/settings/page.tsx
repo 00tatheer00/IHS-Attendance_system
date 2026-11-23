@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { requireStaff } from "@/lib/auth";
+import { getMyDepartmentIds } from "@/lib/queries";
 import { PageHeader } from "@/components/common/page-header";
 import { InlineForm } from "@/components/common/inline-form";
 import { Input } from "@/components/ui/input";
@@ -34,7 +35,8 @@ function Chips({ items }: { items: { key: string; label: React.ReactNode }[] }) 
 }
 
 export default async function SettingsPage() {
-  const { supabase } = await requireStaff();
+  const { supabase, profile } = await requireStaff();
+  const myDepts = await getMyDepartmentIds(supabase, profile.role === "admin");
   const [{ data: depts }, { data: batches }, { data: subjects }] = await Promise.all([
     supabase.from("departments").select("id, code, name, is_locked, has_sections").order("code"),
     supabase.from("batches").select("id, name, intake_code, session_label").order("created_at"),
@@ -46,7 +48,11 @@ export default async function SettingsPage() {
       <PageHeader title="Settings" description="Departments, batches and subjects used across the system." />
       <div className="grid gap-5 lg:grid-cols-2">
         <Section title="Departments" description="Code = roll-number prefix (CAR-F26-01 → CAR). Locked departments are hidden from students, imports and new courses.">
-          <DepartmentLocks departments={(depts ?? []) as { id: string; code: string; name: string; is_locked: boolean; has_sections: boolean }[]} />
+          <DepartmentLocks
+            departments={((depts ?? []) as { id: string; code: string; name: string; is_locked: boolean; has_sections: boolean }[]).filter(
+              (d) => !myDepts || myDepts.has(d.id),
+            )}
+          />
           <InlineForm action={addDepartment} submitLabel="Add">
             <Input name="code" placeholder="Code" className="w-24 uppercase" required />
             <Input name="name" placeholder="Name, e.g. Physiotherapy" className="min-w-48 flex-1" required />
